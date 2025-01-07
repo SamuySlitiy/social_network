@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-from groups_comms.models import Group, Community
 
 class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
@@ -26,14 +25,13 @@ class Friendship(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('requester', 'receiver')
+        unique_together = ('requester', 'receiver') 
         indexes = [
             models.Index(fields=['requester', 'receiver']),
         ]
 
     def __str__(self):
         return f"{self.requester.username} -> {self.receiver.username} ({'Friends' if self.is_accepted else 'Pending'})"
-
 
 class Subscription(models.Model):
     subscriber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
@@ -48,3 +46,4 @@ class Subscription(models.Model):
 
     def __str__(self):
         return f"{self.subscriber.username} -> {self.subscribed_to.username}"
+    
