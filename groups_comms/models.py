@@ -4,7 +4,7 @@ from profiles.models import User
 class Group(models.Model):
     name = models.CharField(max_length=70)
     description = models.TextField(max_length=255)
-    members = models.ManyToManyField(User, related_name='groups', blank=True)
+    members = models.ManyToManyField(User, related_name='group', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
