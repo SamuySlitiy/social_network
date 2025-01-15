@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
-    bio = models.TextField(max_length=250, blank=True)
+    bio = models.CharField(max_length=250, blank=True)
     followers = models.ManyToManyField('self', symmetrical=False, related_name='following')
 
     def get_friends(self):
@@ -17,6 +17,9 @@ class User(AbstractUser):
 
     def get_subscribers(self):
         return Subscription.objects.filter(subscribed_to=self).values_list('subscriber', flat=True)
+    
+    def get_messages(self):
+        return PrivateMessage.objects.filter(senter=self).values_list('receiver', flat=True)
 
 class Friendship(models.Model):
     requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_requests_sent')
