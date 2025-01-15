@@ -47,3 +47,17 @@ class Subscription(models.Model):
     def __str__(self):
         return f"{self.subscriber.username} -> {self.subscribed_to.username}"
     
+class PrivateMessage(models.Model):
+    senter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_sent')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_received')
+    is_read = models.BooleanField(default=False)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('senter', 'receiver')
+        indexes = [
+            models.Index(fields=['senter', 'receiver']),
+        ]
+
+    def __str__(self):
+        return f"{self.senter.username} has sent {self.receiver.username} a message."

@@ -1,5 +1,8 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
+from django.db import models
+from .models import Post, Comment
 from .forms import UserForm, UserAuthForm
 
 def register(request):
