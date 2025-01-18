@@ -11,10 +11,6 @@ class UserAuthForm(AuthenticationForm):
     class Meta:
         model = User
 
-from django import forms
-from .models import Post, Comment, Note
-
-
 class PostForm(forms.ModelForm):
     class Meta:
         model = Post
