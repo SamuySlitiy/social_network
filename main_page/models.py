@@ -12,11 +12,11 @@ class Post(models.Model):
     
 class Note(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='note')
-    content = models.TextField(max_length=100, blank=True)
+    content = models.TextField(max_length=100, blank=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Story by {self.author.username} at {self.created_at}"
+        return f"Note by {self.author.username} at {self.created_at}"
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')
@@ -26,4 +26,3 @@ class Comment(models.Model):
     
     def __str__(self):
         return f"Comment by {self.author.username} on {self.post.id}"
-
