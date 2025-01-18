@@ -1,10 +1,12 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
 from django.urls import reverse, reverse_lazy
+from django.shortcuts import get_object_or_404
 from .models import Post, Comment
 from .forms import *
 
@@ -41,72 +43,102 @@ def logout(request):
     logout(request)
     return redirect('home')
 
-@login_required
+@method_decorator(login_required, name='dispatch')
 class PostCreateView(CreateView):
     model = Post
     template_name = "main_page/index.html"
-    fields = ['author', 'content', 'image']
-    widgets = {
-        'created_at': forms.DateInput(attrs={'type': 'date'})
-    }
+    fields = ['content', 'image']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['posts'] = Post.objects.all().order_by('created_at')
+        context['notes'] = Note.objects.filter(author=self.request.user).order_by('created_at')
+        return context
+
+
+@method_decorator(login_required, name='dispatch')
 class PostListView(ListView):
     model = Post
     template_name = "main_page/index.html"
     context_object_name = 'posts'
+    queryset = Post.objects.all().order_by('created_at')
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['posts'] = Post.objects.all()
-        return context
 
+@method_decorator(login_required, name='dispatch')
 class PostDeleteView(DeleteView):
     model = Post
-    template_name = "main_page/index.html"
-    success_url = reverse_lazy('main_page/index.html')
+    template_name = "main_page/post_confirm_delete.html"
+    success_url = reverse_lazy('main_page:index') 
 
+    def get_queryset(self):
+        return Post.objects.filter(author=self.request.user)
+
+
+@method_decorator(login_required, name='dispatch')
 class NoteCreateView(CreateView):
     model = Note
     template_name = "main_page/index.html"
-    fields = ['author', 'content']
-    widgets = {
-        'created_at': forms.DateInput(attrs={'type': 'date'})
-    }
+    fields = ['content']
 
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        return super().form_valid(form)
+
+
+@method_decorator(login_required, name='dispatch')
 class NoteDeleteView(DeleteView):
     model = Note
-    template_name = "main_page/index.html"
-    success_url = reverse_lazy('main_page/index.html')
+    template_name = "main_page/note_confirm_delete.html"
+    success_url = reverse_lazy('main_page:index')
 
+    def get_queryset(self):
+        return Note.objects.filter(author=self.request.user)
+
+
+@method_decorator(login_required, name='dispatch')
 class NoteListView(ListView):
     model = Note
     template_name = "main_page/index.html"
-    context_object_name = 'note'
+    context_object_name = 'notes'
 
+    def get_queryset(self):
+        return Note.objects.filter(author=self.request.user).order_by('created_at')
+
+
+@method_decorator(login_required, name='dispatch')
 class CommentCreateView(CreateView):
     model = Comment
-    template_name = "main_page/post.html"
-    context_object_name = 'comments'
-    fields = ['author', 'content']
-    widgets = {
-        'created_at': forms.DateInput(attrs={'type': 'date'})
-    }
+    template_name = "main_page/posts.html"
+    fields = ['content']
 
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        form.instance.post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        return super().form_valid(form)
+
+
+@method_decorator(login_required, name='dispatch')
 class CommentDeleteView(DeleteView):
     model = Comment
-    template_name = "main_page/post.html"
-    success_url = reverse_lazy('main_page/index.html')
+    template_name = "main_page/comment_confirm_delete.html"
 
+    def get_success_url(self):
+        return reverse_lazy('posts.html')
+
+    def get_queryset(self):
+        return Comment.objects.filter(author=self.request.user)
+
+
+@method_decorator(login_required, name='dispatch')
 class CommentListView(ListView):
-    model = Post
-    template_name = "main_page/post.html"
+    model = Comment
+    template_name = "main_page/posts.html"
     context_object_name = 'comments'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['comments'] = Comment.objects.all()
-        return context
+    def get_queryset(self):
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        return Comment.objects.filter(post=post).order_by('created_at')
