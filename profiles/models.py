@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractUser
 
 class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
-    bio = models.TextField(max_length=250, blank=True)
+    bio = models.CharField(max_length=250, blank=True)
     followers = models.ManyToManyField('self', symmetrical=False, related_name='following')
 
     def get_friends(self):
@@ -17,6 +17,9 @@ class User(AbstractUser):
 
     def get_subscribers(self):
         return Subscription.objects.filter(subscribed_to=self).values_list('subscriber', flat=True)
+    
+    def get_messages(self):
+        return PrivateMessage.objects.filter(senter=self).values_list('receiver', flat=True)
 
 class Friendship(models.Model):
     requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_requests_sent')
@@ -47,3 +50,17 @@ class Subscription(models.Model):
     def __str__(self):
         return f"{self.subscriber.username} -> {self.subscribed_to.username}"
     
+class PrivateMessage(models.Model):
+    senter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_sent')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_received')
+    is_read = models.BooleanField(default=False)
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('senter', 'receiver')
+        indexes = [
+            models.Index(fields=['senter', 'receiver']),
+        ]
+
+    def __str__(self):
+        return f"{self.senter.username} has sent {self.receiver.username} a message."
