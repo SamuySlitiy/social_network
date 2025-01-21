@@ -18,13 +18,12 @@
         </div>
     </div>
 
-    <!-- Comments Section -->
     <h2>Comments</h2>
     <ul class="list-group mb-4">
         {% for comment in comments %}
         <li class="list-group-item">
             <strong>{{ comment.author.username }}</strong>: {{ comment.content }}
-            <form method="post" action="{% url 'comment_delete' comment.id %}" style="display:inline;">
+            <form method="post" action="{% url '' comment.id %}" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
             </form>
@@ -32,7 +31,6 @@
         {% endfor %}
     </ul>
 
-    <!-- Add a Comment -->
     <h3>Add a Comment</h3>
     <form method="post" class="mb-4">
         {% csrf_token %}
@@ -40,6 +38,6 @@
         <button type="submit" class="btn btn-primary">Submit Comment</button>
     </form>
 
-    <a href="{% url 'index' %}" class="btn btn-secondary">Back to Main Page</a>
+    <a href="{% url '' %}" class="btn btn-secondary">Back to Main Page</a>
 </body>
 </html>

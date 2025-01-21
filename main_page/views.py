@@ -5,6 +5,8 @@ from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
+from django.contrib.auth.mixins import LoginRequiredMixin
+from profiles.mixins import UserIsOwnerMixin
 from django.urls import reverse, reverse_lazy
 from django.shortcuts import get_object_or_404
 from .models import Post, Comment
@@ -39,15 +41,17 @@ def login(request):
 
     return render(request, template_name='main_page/login.html', context = {'form': form})
 
+@login_required
 def logout(request):
     logout(request)
     return redirect('home')
 
-@method_decorator(login_required, name='dispatch')
-class PostCreateView(CreateView):
+# POSTS
+
+class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
+    form_class = PostForm
     template_name = "main_page/index.html"
-    fields = ['content', 'image']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -59,8 +63,6 @@ class PostCreateView(CreateView):
         context['notes'] = Note.objects.filter(author=self.request.user).order_by('created_at')
         return context
 
-
-@method_decorator(login_required, name='dispatch')
 class PostListView(ListView):
     model = Post
     template_name = "main_page/index.html"
@@ -68,38 +70,25 @@ class PostListView(ListView):
     queryset = Post.objects.all().order_by('created_at')
 
 
-@method_decorator(login_required, name='dispatch')
-class PostDeleteView(DeleteView):
+class PostDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Post
-    template_name = "main_page/post_confirm_delete.html"
+    template_name = "main_page/posts.html"
     success_url = reverse_lazy('main_page:index') 
 
     def get_queryset(self):
         return Post.objects.filter(author=self.request.user)
 
+# NOTES
 
-@method_decorator(login_required, name='dispatch')
-class NoteCreateView(CreateView):
+class NoteCreateView(LoginRequiredMixin, CreateView):
     model = Note
+    model = NoteForm
     template_name = "main_page/index.html"
-    fields = ['content']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         return super().form_valid(form)
 
-
-@method_decorator(login_required, name='dispatch')
-class NoteDeleteView(DeleteView):
-    model = Note
-    template_name = "main_page/note_confirm_delete.html"
-    success_url = reverse_lazy('main_page:index')
-
-    def get_queryset(self):
-        return Note.objects.filter(author=self.request.user)
-
-
-@method_decorator(login_required, name='dispatch')
 class NoteListView(ListView):
     model = Note
     template_name = "main_page/index.html"
@@ -108,32 +97,25 @@ class NoteListView(ListView):
     def get_queryset(self):
         return Note.objects.filter(author=self.request.user).order_by('created_at')
 
+class NoteDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
+    model = Note
+    template_name = "main_page/index.html"
+    success_url = reverse_lazy('main_page:index')
 
-@method_decorator(login_required, name='dispatch')
-class CommentCreateView(CreateView):
+    def get_queryset(self):
+        return Note.objects.filter(author=self.request.user)
+    
+# COMMENTS
+class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
+    form = CommentForm
     template_name = "main_page/posts.html"
-    fields = ['content']
 
     def form_valid(self, form):
         form.instance.author = self.request.user
         form.instance.post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         return super().form_valid(form)
 
-
-@method_decorator(login_required, name='dispatch')
-class CommentDeleteView(DeleteView):
-    model = Comment
-    template_name = "main_page/comment_confirm_delete.html"
-
-    def get_success_url(self):
-        return reverse_lazy('posts.html')
-
-    def get_queryset(self):
-        return Comment.objects.filter(author=self.request.user)
-
-
-@method_decorator(login_required, name='dispatch')
 class CommentListView(ListView):
     model = Comment
     template_name = "main_page/posts.html"
@@ -142,3 +124,21 @@ class CommentListView(ListView):
     def get_queryset(self):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         return Comment.objects.filter(post=post).order_by('created_at')
+    
+class CommentUpdateView(UpdateView):
+    model = Comment
+    form_class = CommentForm
+    template_name = 'main_page/posts.html'
+
+    def get_success_url(self):
+        return reverse_lazy('', kwargs={'pk': self.object.post.id})
+
+class CommentDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
+    model = Comment
+    template_name = "main_page/posts.html"
+
+    def get_success_url(self):
+        return reverse_lazy('posts.html')
+
+    def get_queryset(self):
+        return Comment.objects.filter(author=self.request.user)

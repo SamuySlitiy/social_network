@@ -9,20 +9,12 @@
 <body class="container mt-4">
     <h1 class="mb-4">Welcome to the Main Page</h1>
 
-    <!-- Create Post -->
-    <form method="post" enctype="multipart/form-data" class="mb-4">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Create Post</button>
-    </form>
-
-    <!-- Notes Section -->
     <h2>Your Notes</h2>
     <ul class="list-group mb-4">
         {% for note in notes %}
         <li class="list-group-item">
             {{ note.content }}
-            <form method="post" action="{% url 'note_delete' note.id %}" style="display:inline;">
+            <form method="post" action="{% url '' note.id %}" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
             </form>
@@ -30,7 +22,12 @@
         {% endfor %}
     </ul>
 
-    <!-- Posts Section -->
+    <form method="post" enctype="multipart/form-data" class="mb-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Create Post</button>
+    </form>
+
     <h2>All Posts</h2>
     {% for post in posts %}
     <div class="card mb-3">
@@ -40,7 +37,7 @@
             {% if post.image %}
             <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid mb-3">
             {% endif %}
-            <a href="{% url 'post_detail' post.id %}" class="btn btn-primary">View Comments</a>
+            <a href="{% url '' post.id %}" class="btn btn-primary">View Comments</a>
             <form method="post" action="{% url 'post_delete' post.id %}" style="display:inline;">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-danger">Delete</button>
