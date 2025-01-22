@@ -2,19 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width-device width, initial/scale=1.0">
-    <title>Private Messages</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat with {{ receiver.username }}</title>
 </head>
 <body>
-    {% for senter in senters %}
-        {% for message in messages %}
-            <div>
-                Message from: {{ senter.id }}--- 
-                <span style="font-weight: bold;">
-                    {{ senter.message }}
-                </span>
-            </div>
-        {% endfor %}
-    {% endfor %}
+    <h1>Chat with {{ receiver.username }}</h1>
+    <div>
+        <h2>Message History</h2>
+        <div style="border: 1px solid #ccc; padding: 10px; max-height: 300px; overflow-y: scroll;">
+            {% for message in messages %}
+                <div style="margin-bottom: 10px;">
+                    {% if message.senter == request.user %}
+                        <p style="text-align: right; color: blue;">
+                            <strong>You:</strong> {{ message.content }}
+                        </p>
+                    {% else %}
+                        <p style="text-align: left; color: green;">
+                            <strong>{{ message.senter.username }}:</strong> {{ message.content }}
+                        </p>
+                    {% endif %}
+                    <small style="font-size: 0.8em; color: gray;">{{ message.sent_at }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    <div>
+        <h2>Send a Message</h2>
+        <form method="post">
+            {% csrf_token %}
+            <textarea name="message" rows="3" style="width: 100%;"></textarea><br>
+            <button type="submit">Send</button>
+        </form>
+    </div>
 </body>
 </html>

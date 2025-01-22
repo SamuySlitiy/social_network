@@ -22,7 +22,7 @@
         {% endfor %}
     </ul>
 
-    <form method="post" enctype="multipart/form-data" class="mb-4">
+    <form method="post" enctype="multipart/form-data" class="mb-4" action="{% url 'post-create' %}">
         {% csrf_token %}
         {{ form.as_p }}
         <button type="submit" class="btn btn-primary">Create Post</button>

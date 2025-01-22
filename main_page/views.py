@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from profiles.mixins import UserIsOwnerMixin
 from django.urls import reverse, reverse_lazy
@@ -13,16 +13,16 @@ from .models import Post, Comment
 from .forms import *
 
 def register(request):
-    if request.method == "POST":
+    if request.method == 'POST':
         form = UserForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('home')
+            return redirect('main-page')
     else:
         form = UserForm()
 
-    return render(request, template_name='main_page/register.html',context = {'form': form})
+    return render(request, 'main_page/register.html', context = {'form': form})
 
 def login(request):
     if request.method == "POST":
@@ -33,25 +33,28 @@ def login(request):
             user = authenticate(request, username=username, password=password)
             if user is not None:
                 login(request, user)
-                return redirect('home')
+                return redirect('register')
             else: 
                 messages.error(request, "Invalid Data: Login or Password")
         else:
             form = UserAuthForm()
 
-    return render(request, template_name='main_page/login.html', context = {'form': form})
+    return render(request, 'main_page/login.html', context = {'form': form})
 
 @login_required
 def logout(request):
     logout(request)
-    return redirect('home')
+    return redirect('login')
+
+class IndexPage(TemplateView):
+    template_name = "main_page/index.html"
 
 # POSTS
 
 class PostCreateView(LoginRequiredMixin, CreateView):
     model = Post
     form_class = PostForm
-    template_name = "main_page/index.html"
+    template_name = "main_page/post_create.html"
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -65,14 +68,14 @@ class PostCreateView(LoginRequiredMixin, CreateView):
 
 class PostListView(ListView):
     model = Post
-    template_name = "main_page/index.html"
+    template_name = "main_page/posts.html"
     context_object_name = 'posts'
     queryset = Post.objects.all().order_by('created_at')
 
 
 class PostDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Post
-    template_name = "main_page/posts.html"
+    template_name = "main_page/post_delete.html"
     success_url = reverse_lazy('main_page:index') 
 
     def get_queryset(self):
@@ -83,7 +86,7 @@ class PostDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
 class NoteCreateView(LoginRequiredMixin, CreateView):
     model = Note
     model = NoteForm
-    template_name = "main_page/index.html"
+    template_name = "main_page/note_create.html"
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -91,7 +94,7 @@ class NoteCreateView(LoginRequiredMixin, CreateView):
 
 class NoteListView(ListView):
     model = Note
-    template_name = "main_page/index.html"
+    template_name = "main_page/notes.html"
     context_object_name = 'notes'
 
     def get_queryset(self):
@@ -99,7 +102,7 @@ class NoteListView(ListView):
 
 class NoteDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Note
-    template_name = "main_page/index.html"
+    template_name = "main_page/note_delete.html"
     success_url = reverse_lazy('main_page:index')
 
     def get_queryset(self):
@@ -109,7 +112,7 @@ class NoteDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
 class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form = CommentForm
-    template_name = "main_page/posts.html"
+    template_name = "main_page/comment_create.html"
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -118,7 +121,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
 
 class CommentListView(ListView):
     model = Comment
-    template_name = "main_page/posts.html"
+    template_name = "main_page/comments.html"
     context_object_name = 'comments'
 
     def get_queryset(self):
@@ -128,14 +131,14 @@ class CommentListView(ListView):
 class CommentUpdateView(UpdateView):
     model = Comment
     form_class = CommentForm
-    template_name = 'main_page/posts.html'
+    template_name = 'main_page/comment_update.html'
 
     def get_success_url(self):
         return reverse_lazy('', kwargs={'pk': self.object.post.id})
 
 class CommentDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Comment
-    template_name = "main_page/posts.html"
+    template_name = "main_page/comment_delete.html"
 
     def get_success_url(self):
         return reverse_lazy('posts.html')

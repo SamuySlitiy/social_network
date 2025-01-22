@@ -53,6 +53,7 @@ class Subscription(models.Model):
 class PrivateMessage(models.Model):
     senter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_sent')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_received')
+    text = models.TextField(max_length=200)
     is_read = models.BooleanField(default=False)
     sent_at = models.DateTimeField(auto_now_add=True)
 
