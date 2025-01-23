@@ -72,11 +72,16 @@ class PostListView(ListView):
     context_object_name = 'posts'
     queryset = Post.objects.all().order_by('created_at')
 
+class PostDetailView(LoginRequiredMixin, DetailView):
+    model = Post
+    template_name = "main_page/post_detail.html"    
+    context_object_name = 'post'
+
 
 class PostDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Post
     template_name = "main_page/post_delete.html"
-    success_url = reverse_lazy('main_page:index') 
+    success_url = reverse_lazy('main_page:main-page') 
 
     def get_queryset(self):
         return Post.objects.filter(author=self.request.user)
@@ -103,7 +108,7 @@ class NoteListView(ListView):
 class NoteDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Note
     template_name = "main_page/note_delete.html"
-    success_url = reverse_lazy('main_page:index')
+    success_url = reverse_lazy('main_page:main-page')
 
     def get_queryset(self):
         return Note.objects.filter(author=self.request.user)
@@ -128,20 +133,20 @@ class CommentListView(ListView):
         post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         return Comment.objects.filter(post=post).order_by('created_at')
     
-class CommentUpdateView(UpdateView):
+class CommentUpdateView(LoginRequiredMixin, UserIsOwnerMixin, UpdateView):
     model = Comment
     form_class = CommentForm
     template_name = 'main_page/comment_update.html'
 
     def get_success_url(self):
-        return reverse_lazy('', kwargs={'pk': self.object.post.id})
+        return reverse_lazy('main_page:post-detail', kwargs={'pk': self.object.post.id})
 
 class CommentDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Comment
     template_name = "main_page/comment_delete.html"
 
     def get_success_url(self):
-        return reverse_lazy('posts.html')
+        return reverse_lazy('main_page:post-detail')
 
     def get_queryset(self):
         return Comment.objects.filter(author=self.request.user)

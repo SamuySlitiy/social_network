@@ -38,7 +38,7 @@ class UserUpdateView(LoginRequiredMixin, UserIsProfileOwner, UpdateView):
     model = User
     form_class = UserUpdateForm
     template_name = 'profiles/user_update.html'
-    success_url = reverse_lazy('')
+    success_url = reverse_lazy('profiles:user-profile')
 
     def get_object(self, queryset=None):
         return self.request.user
@@ -57,7 +57,7 @@ class FriendshipCreateView(LoginRequiredMixin, CreateView):
     model = Friendship
     form_class = FriendshipForm
     template_name = 'profiles/request_friendship.html'
-    success_url = reverse_lazy('friends-list')
+    success_url = reverse_lazy('profiles:friendship-list')
 
     def form_valid(self, form):
         form.instance.requester = self.request.user
@@ -66,7 +66,7 @@ class FriendshipCreateView(LoginRequiredMixin, CreateView):
 class FriendshipDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Friendship
     template_name = 'profiles/friendship_confirm_delete.html'
-    success_url = reverse_lazy('friends-list')
+    success_url = reverse_lazy('profiles:friendship-list')
 
 # SUBSCRIPTIONS
 
@@ -82,7 +82,7 @@ class SubscriptionCreateView(LoginRequiredMixin, CreateView):
     model = Subscription
     form_class = SubscriptionForm
     template_name = 'profiles/request_subscribtion.html'
-    success_url = reverse_lazy('subscription-list')
+    success_url = reverse_lazy('profiles:subscription-list')
 
     def form_valid(self, form):
         form.instance.subscriber = self.request.user
@@ -91,7 +91,7 @@ class SubscriptionCreateView(LoginRequiredMixin, CreateView):
 class SubscriptionDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = Subscription
     template_name = 'profiles/subscription_confirm_delete.html'
-    success_url = reverse_lazy('subscriptions-list')
+    success_url = reverse_lazy('profiles:subscription-list')
     
 
 # MESSAGES
@@ -109,7 +109,7 @@ class PrivateMessageCreateView(LoginRequiredMixin, CreateView):
     model = PrivateMessage
     form_class = PrivateMessageForm
     template_name = 'profiles/private_message_form.html'
-    success_url = reverse_lazy('private-message-list')
+    success_url = reverse_lazy('profiles:chat')
 
     def form_valid(self, form):
         form.instance.senter = self.request.user
@@ -118,7 +118,7 @@ class PrivateMessageCreateView(LoginRequiredMixin, CreateView):
 class PrivateMessageDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
     model = PrivateMessage
     template_name = 'profiles/private_message_confirm_delete.html'
-    success_url = reverse_lazy('private-message-list')
+    success_url = reverse_lazy('profiles:chat')
 
 @login_required
 def messages_view(request):
@@ -131,5 +131,5 @@ def chat_view(request, username):
     messages = PrivateMessage.objects.filter(
         (models.Q(senter=request.user, receiver=receiver) | 
          models.Q(senter=receiver, receiver=request.user))
-    ).order_by('timestamp')
+    ).order_by('sent_at')
     return render(request, 'profiles/chat.html', {'receiver': receiver, 'messages': messages})

@@ -7,13 +7,11 @@ urlpatterns = [
     path('login/', views.login, name='login'),
     path('logout/', views.logout, name='logout'),
 
-
     path('index/', IndexPage.as_view(), name='main-page'),
-
 
     path('posts/', PostListView.as_view(), name='post-list'),
     path('posts/create/', PostCreateView.as_view(), name='post-create'),
-    #path('posts/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
+    path('posts/<int:pk>/', PostDetailView.as_view(), name='post-detail'),
     path('posts/<int:pk>/delete/', PostDeleteView.as_view(), name='post-delete'),
 
     path('posts/<int:post_id>/comments/create/', CommentCreateView.as_view(), name='comment-create'),

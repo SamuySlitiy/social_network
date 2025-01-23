@@ -13,7 +13,7 @@
             <h5 class="card-title">{{ post.author.username }}</h5>
             <p class="card-text">{{ post.content }}</p>
             {% if post.image %}
-            <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid">
+                <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid">
             {% endif %}
         </div>
     </div>
@@ -21,13 +21,13 @@
     <h2>Comments</h2>
     <ul class="list-group mb-4">
         {% for comment in comments %}
-        <li class="list-group-item">
-            <strong>{{ comment.author.username }}</strong>: {{ comment.content }}
-            <form method="post" action="{% url '' comment.id %}" style="display:inline;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-            </form>
-        </li>
+            <li class="list-group-item">
+                <strong>{{ comment.author.username }}</strong>: {{ comment.content }}
+                <form method="post" action="{% url '' comment.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </li>
         {% endfor %}
     </ul>
 

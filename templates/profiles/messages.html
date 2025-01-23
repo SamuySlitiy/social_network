@@ -10,7 +10,7 @@
     <ul>
         {% for senter in senters %}
             <li>
-                <a href="{% url 'chat-view' senter.username %}">{{ senter.username }}</a>
+                <a href="{% url 'chat' senter.username %}">{{ senter.username }}</a>
             </li>
         {% endfor %}
     </ul>

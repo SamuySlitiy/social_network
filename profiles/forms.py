@@ -23,6 +23,6 @@ class SubscriptionForm(forms.ModelForm):
 class PrivateMessageForm(forms.ModelForm):
     class Meta:
         model = PrivateMessage
-        fields = ['receiver', 'message_content']
+        fields = ['receiver', 'text']
 
-    message_content = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), label="Message")
+    text = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), label="Message")
