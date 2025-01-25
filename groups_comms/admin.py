@@ -1,6 +1,6 @@
 from django.contrib import admin
-from .models import Group, Community
+from .models import Group, GroupMessage
 
-admin.site.register((Group, Community))
+admin.site.register((Group, GroupMessage))
 
 
