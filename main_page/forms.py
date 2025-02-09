@@ -16,7 +16,7 @@ class PostForm(forms.ModelForm):
         model = Post
         fields = ['content', 'image']
         widgets = {
-            'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write your post...'}),
+            'content': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Write something about your post...'}),
             'image': forms.ClearableFileInput(attrs={'class': 'form-control'}),
         }
 

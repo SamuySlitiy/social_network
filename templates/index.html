@@ -1,0 +1,125 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>Main Page</title>
+</head>
+<body>
+
+
+    <h1 style="font-family: Arial, Helvetica, sans-serif; align-self: center;">Welcome to the Social Network.</h1>
+    <br>
+    <nav>
+        <div>
+            <span id="notification-icon">🔔</span>
+            <span id="notification-count">0</span>
+        </div>
+    </nav>
+    <div id="notification-list" style="display: none;">
+        <ul id="notifications">0</ul>
+        <button id="mark-as-read">Mark All as Read</button>
+    </div>
+
+    <ul>
+
+        <h2 style="font-family: Arial, Helvetica, sans-serif;">Notes:</h2>
+
+        {% for note in notes %}
+        <li style="color:rgb(131, 174, 255);">
+            <text style="font-family: sans-serif; font-weight: bold; color: #000000">{{ note.content }} - </text>
+            <small style="font-family: sans-serif;">{{ note.created_at }}</small>
+            {% if user == note.author %}
+                <a href="{% url 'note-delete' note.id %}" style="font-weight: normal; color:rgb(248, 56, 31);">Delete Note</a>
+            {% endif %}
+        </li>
+        {% endfor %}
+        <li style="color: #fdcf00;">
+            <a href="{% url 'note-list' %}">View more Notes</a>
+        </li>
+        <li style="color: #fdcf00;">
+            <a href="{% url 'note-create' %}" >Create a Note</a>
+            <h1 style="font-family: Arial, Helvetica, sans-serif; margin-bottom: 0px; align-self: center;">Create a Note</h1>
+            <form method="post">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Create</button>
+            </form>
+        </li>
+
+        <h2 style="font-family: Arial, Helvetica, sans-serif;">Posts:</h2>
+
+        <li style="color: #fdcf00;">
+            <a href="{% url 'post-list' %}">View more Posts</a>
+        </li>
+        <li style="color: #fdcf00;">
+            <a href="{% url 'post-create' %}" >Create a Post</a>
+            <h2 style="font-family: Arial, Helvetica, sans-serif; margin-bottom: 0px;">Create a post:</h2>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit">Create</button>
+            </form>
+        </li>
+
+        <h3 style="font-family: Arial, Helvetica, sans-serif;">Users, Followers and those who you Follow:</h3>
+
+        <li style="color: #fdcf00;">
+            <a href="{% url 'users' %}">Profiles</a>
+        </li>
+
+    </ul>    
+    <script>
+        function fetchNotifications() {
+            $.ajax({
+                url: "{% url 'notifications' %}",
+                type: "GET",
+                success: function(response) {
+                    let notifications = response.notifications;
+                    let notificationList = $("#notifications");
+                    notificationList.empty();
+
+                    if (notifications.length > 0) {
+                        $("#notification-count").text(notifications.length);
+                        notifications.forEach(function (notification) {
+                            notificationList.append(`<li>${notification.text}</li>`);
+                        });
+                    } else {
+                        $("#notification-count").text("0");
+                    }
+                }
+            });
+        }
+
+        function markNotificationsAsRead() {
+            $.ajax({
+                url: "{% url 'mark-notifications-read' %}",
+                type: "POST",
+                data: {
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                success: function() {
+                    $("#notification-count").text("0");
+                    $("#notification-list").hide();
+                }
+            });
+        }
+
+        $(document).ready(function() {
+            fetchNotifications();
+            setInterval(fetchNotifications, 5000);  // Fetch every 5 seconds
+
+            $("#notification-icon").click(function() {
+                $("#notification-list").toggle();
+            });
+
+            $("#mark-as-read").click(markNotificationsAsRead);
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>
