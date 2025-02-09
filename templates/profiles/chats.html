@@ -8,19 +8,23 @@
     <title>Chats</title>
 </head>
 <body>
-    <h1>Your Chats</h1>
-    <ul>
-
-        {% for user in chat_users %}
-            <li>
-                <a href="{% url 'chat-detail' user.username %}">{{ user.username }}</a>
-            </li>
-        {% empty %}
-            <li>You have no active chats.</li>
-        {% endfor %}
-
-        
-    </ul>
+    <div class="container mt-2">
+        <a class="btn btn-success" href="{% url 'main-page' %}" role="button">
+            Main Page
+        </a>
+        <h1>Your Chats</h1>
+        <ul>
+            <div class="container">
+                {% for user in chat_users %}
+                    <li>
+                        <a href="{% url 'chat' user.id %}">{{ user.username }}</a>
+                    </li>
+                {% empty %}
+                    <li>You have no active chats.</li>
+                {% endfor %}
+            </div>
+        </ul>
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 </body>
 </html>
