@@ -37,7 +37,6 @@ class PrivateMessage(models.Model):
     sent_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('senter', 'receiver')
         indexes = [
             models.Index(fields=['senter', 'receiver']),
         ]

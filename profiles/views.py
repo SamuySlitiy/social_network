@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView, View
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView, TemplateView, View
 from django.db import models
 from django.urls import reverse_lazy
 from django.http import JsonResponse
 from django.contrib.auth.mixins import LoginRequiredMixin
 from .models import User, Follow, PrivateMessage, Notification
-from .mixins import UserIsOwnerMixin, UserIsProfileOwner
 from .forms import *
 from .utils import create_notification
     
@@ -93,46 +92,55 @@ def toggle_follow(request):
         if not created:
             follow.delete()
             return JsonResponse({"followed": False})  # Unfollowed
+        create_notification(user_to_follow, request.user, 'follow', f"{request.user.username} is now following you!")
         return JsonResponse({"followed": True})  # Followed
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 
 # MESSAGES
 
-@login_required
-def chat_view(request, receiver_id):
-    receiver = get_object_or_404(User, id=receiver_id)
-    messages = PrivateMessage.objects.filter(
-        senter=request.user, receiver=receiver
-    ) | PrivateMessage.objects.filter(
-        senter=receiver, receiver=request.user
-    ).order_by("sent_at")
+class MessageCreateView(LoginRequiredMixin, CreateView):
+    model = PrivateMessage
+    fields = ["text"]
 
-    if request.method == "POST":
-        form = PrivateMessageForm(request.POST)
-        if form.is_valid():
-            message = form.save(commit=False)
-            message.senter = request.user
-            message.receiver = receiver
-            message.save()
-            return JsonResponse({
-                "senter": message.senter.username,
-                "text": message.text,
-                "sent_at": message.sent_at.strftime("%Y-%m-%d %H:%M:%S")
-            }) 
+    def form_valid(self, form):
+        form.instance.senter = self.request.user
+        form.instance.receiver = get_object_or_404(User, id=self.kwargs["receiver_id"])
+        message = form.save()
 
-    else:
-        form = PrivateMessageForm()
+        return JsonResponse({
+            "senter": message.senter.username,
+            "text": message.text,
+            "sent_at": message.sent_at.strftime("%Y-%m-%d %H:%M"),
+        })
+    
+class MessageListView(LoginRequiredMixin, ListView):
+    template_name = "profiles/messages.html"
+    context_object_name = "messages"
 
-    return render(request, "messages.html", {
-        "receiver": receiver,
-        "messages": messages,
-        "form": form
-    })
+    def get_queryset(self):
+        receiver = get_object_or_404(User, pk=self.kwargs["receiver_id"])
+        return PrivateMessage.objects.filter(
+            senter=self.request.user, receiver=receiver
+        ) | PrivateMessage.objects.filter(
+            senter=receiver, receiver=self.request.user
+        ).order_by("sent_at")
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["receiver"] = get_object_or_404(User, pk=self.kwargs["receiver_id"])
+        return context
+
+class ChatListView(LoginRequiredMixin, ListView):
+    template_name = "profiles/chats.html"
+    context_object_name = "chat_users"
+
+    def get_queryset(self):
+        return User.objects.exclude(id=self.request.user.id)  # Show all users except self
 
 @login_required
 def delete_message(request, message_id):
-    message = get_object_or_404(PrivateMessage, id=message_id, sender=request.user)
+    message = get_object_or_404(PrivateMessage, id=message_id, senter=request.user)
     
     if request.method == "POST":
         message.delete()
@@ -144,7 +152,7 @@ def delete_message(request, message_id):
 
 class NotificationListView(LoginRequiredMixin, ListView):
     model = Notification
-    template_name = "notifications/notification_list.html"
+    template_name = "profiles/notification_list.html"
     context_object_name = "notifications"
 
     def get_queryset(self):
