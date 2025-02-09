@@ -4,52 +4,31 @@ from django.contrib.auth.models import AbstractUser
 class User(AbstractUser):
     profile_picture = models.ImageField(upload_to='profiles/', blank=True, null=True)
     bio = models.CharField(max_length=250, blank=True)
-    followers = models.ManyToManyField('self', symmetrical=False, related_name='following')
+    user_followers = models.ManyToManyField('self', symmetrical=False, related_name='user_follows')
 
-    def get_friends(self):
-        friends = Friendship.objects.filter(models.Q(requester=self, is_accepted=True) | models.Q(receiver=self, is_accepted=True))
-        return [f.receiver if f.requester == self else f.requester for f in friends]
-
-
-    def get_subscriptions(self):
-        return Subscription.objects.filter(subscriber=self).values_list('subscribed_to', flat=True)
-
-
-    def get_subscribers(self):
-        return Subscription.objects.filter(subscribed_to=self).values_list('subscriber', flat=True)
+    def __str__(self):
+        return self.username
     
-    def get_messages(self):
-        return PrivateMessage.objects.filter(senter=self).values_list('receiver', flat=True)
+    def user_first_name(self):
+        return f"First Name: {self.first_name}"
+    
+    def user_last_name(self):
+        return f"Last Name: {self.last_name}"
+    
+    def user_email(self):
+        return f"Email: {self.email}"
 
-class Friendship(models.Model):
-    requester = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_requests_sent')
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='friend_requests_received')
-    is_accepted = models.BooleanField(default=False)
+class Follow(models.Model):
+    is_following = models.ForeignKey(User, on_delete=models.CASCADE, related_name='following')
+    is_followed = models.ForeignKey(User, on_delete=models.CASCADE, related_name='followers')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('requester', 'receiver') 
-        indexes = [
-            models.Index(fields=['requester', 'receiver']),
-        ]
+        unique_together = ('is_following', 'is_followed')
 
     def __str__(self):
-        return f"{self.requester.username} -> {self.receiver.username} ({'Friends' if self.is_accepted else 'Pending'})"
+        return f"{self.is_following.username} follows {self.is_followed.username}"
 
-class Subscription(models.Model):
-    subscriber = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscriptions')
-    subscribed_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='subscribers')
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    class Meta:
-        unique_together = ('subscriber', 'subscribed_to')
-        indexes = [
-            models.Index(fields=['subscriber', 'subscribed_to']),
-        ]
-
-    def __str__(self):
-        return f"{self.subscriber.username} -> {self.subscribed_to.username}"
-    
 class PrivateMessage(models.Model):
     senter = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_sent')
     receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='message_received')
@@ -65,3 +44,20 @@ class PrivateMessage(models.Model):
 
     def __str__(self):
         return f"{self.senter.username} has sent {self.receiver.username} a message."
+    
+class Notification(models.Model):
+    NOTIFICATION_TYPES = (
+        ('message', 'Message'),
+        ('like', 'Like'),
+        ('follow', 'Follow'),
+    )
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name="sent_notifications")
+    notification_type = models.CharField(max_length=10, choices=NOTIFICATION_TYPES)
+    text = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Notification for {self.user.username} - {self.notification_type}"

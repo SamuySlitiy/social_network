@@ -1,12 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView, View
 from django.db import models
 from django.urls import reverse_lazy
-from .models import User, Friendship, Subscription, PrivateMessage
-from django.contrib.auth.mixins import LoginRequiredMixin #, UserPassesTestMixin
+from django.http import JsonResponse
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import User, Follow, PrivateMessage, Notification
 from .mixins import UserIsOwnerMixin, UserIsProfileOwner
 from .forms import *
+from .utils import create_notification
     
 # USERS
 
@@ -31,105 +33,124 @@ class UsersListView(ListView):
 
 class UserDetailView(DetailView):
     model = User
-    template_name = 'profiles/user_detal.html'
-    context_object_name = 'user_profile'
+    template_name = 'profiles/user_detail.html'
+    context_object_name = 'user'
 
-class UserUpdateView(LoginRequiredMixin, UserIsProfileOwner, UpdateView):
+    def get_context_data(self, **kwargs):
+        self.user = get_object_or_404(User, pk=self.kwargs['pk'])
+        context = super().get_context_data(**kwargs)
+        context['username'] = self.user.username
+        context['first_name'] = self.user.user_first_name()
+        context['last_name'] = self.user.user_last_name()
+        context['email'] = self.user.user_email()
+        return context
+    
+class UserUpdateView(LoginRequiredMixin, UpdateView):
     model = User
-    form_class = UserUpdateForm
+    form_class = UserForm
     template_name = 'profiles/user_update.html'
-    success_url = reverse_lazy('profiles:user-profile')
+
+    def form_valid(self, form):
+        self.object = form.save()
+        
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # AJAX
+            return JsonResponse({"message": "Profile updated successfully"})
+        
+        return super().form_valid(form)
+
+# FOLLOWS
+class FollowListView(LoginRequiredMixin, ListView):
+    model = Follow
+    template_name = "profiles/follow_list.html"
+    context_object_name = 'follows'
+
+    def get_queryset(self):
+        user = get_object_or_404(User, pk=self.kwargs['pk'])
+        return Follow.objects.filter(
+            models.Q(is_following=user) | 
+            models.Q(is_followed=user)
+        ).order_by('-created_at')
+
+class FollowDetailView(LoginRequiredMixin, DetailView):
+    model = Follow
+    template_name = "profiles/follow_detail.html"
+    context_object_name = 'follow'
 
     def get_object(self, queryset=None):
-        return self.request.user
+        return get_object_or_404(Follow, pk=self.kwargs['pk'])
 
-# FRIENDS
-    
-class FriendshipListView(LoginRequiredMixin, ListView):
-    model = Friendship
-    template_name = 'profiles/friends.html'
-    context_object_name = 'friendships'
+@login_required
+def toggle_follow(request):
+    if request.method == "POST":
+        user_id = request.POST.get("user_id")
+        user_to_follow = get_object_or_404(User, id=user_id)
 
-    def get_queryset(self):
-        return self.request.user.get_friends()
+        if request.user == user_to_follow:
+            return JsonResponse({"error": "You cannot follow yourself"}, status=400)
 
-class FriendshipCreateView(LoginRequiredMixin, CreateView):
-    model = Friendship
-    form_class = FriendshipForm
-    template_name = 'profiles/request_friendship.html'
-    success_url = reverse_lazy('profiles:friendship-list')
+        follow, created = Follow.objects.get_or_create(is_following=request.user, is_followed=user_to_follow)
 
-    def form_valid(self, form):
-        form.instance.requester = self.request.user
-        return super().form_valid(form)
-    
-class FriendshipDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
-    model = Friendship
-    template_name = 'profiles/friendship_confirm_delete.html'
-    success_url = reverse_lazy('profiles:friendship-list')
+        if not created:
+            follow.delete()
+            return JsonResponse({"followed": False})  # Unfollowed
+        return JsonResponse({"followed": True})  # Followed
 
-# SUBSCRIPTIONS
-
-class SubscriptionListView(LoginRequiredMixin, ListView):
-    model = Subscription
-    template_name = 'profiles/subscribtions.html'
-    context_object_name = 'subscriptions'
-
-    def get_queryset(self):
-        return self.request.user.subscriptions.all()
-
-class SubscriptionCreateView(LoginRequiredMixin, CreateView):
-    model = Subscription
-    form_class = SubscriptionForm
-    template_name = 'profiles/request_subscribtion.html'
-    success_url = reverse_lazy('profiles:subscription-list')
-
-    def form_valid(self, form):
-        form.instance.subscriber = self.request.user
-        return super().form_valid(form)
-
-class SubscriptionDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
-    model = Subscription
-    template_name = 'profiles/subscription_confirm_delete.html'
-    success_url = reverse_lazy('profiles:subscription-list')
-    
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
 # MESSAGES
 
-class PrivateMessageListView(LoginRequiredMixin, ListView):
-    model = PrivateMessage
-    template_name = 'profiles/private_message_list.html'
-    context_object_name = 'messages'
+@login_required
+def chat_view(request, receiver_id):
+    receiver = get_object_or_404(User, id=receiver_id)
+    messages = PrivateMessage.objects.filter(
+        senter=request.user, receiver=receiver
+    ) | PrivateMessage.objects.filter(
+        senter=receiver, receiver=request.user
+    ).order_by("sent_at")
+
+    if request.method == "POST":
+        form = PrivateMessageForm(request.POST)
+        if form.is_valid():
+            message = form.save(commit=False)
+            message.senter = request.user
+            message.receiver = receiver
+            message.save()
+            return JsonResponse({
+                "senter": message.senter.username,
+                "text": message.text,
+                "sent_at": message.sent_at.strftime("%Y-%m-%d %H:%M:%S")
+            }) 
+
+    else:
+        form = PrivateMessageForm()
+
+    return render(request, "messages.html", {
+        "receiver": receiver,
+        "messages": messages,
+        "form": form
+    })
+
+@login_required
+def delete_message(request, message_id):
+    message = get_object_or_404(PrivateMessage, id=message_id, sender=request.user)
+    
+    if request.method == "POST":
+        message.delete()
+        return JsonResponse({"success": True}) 
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
+
+# NOTIFICATIONS
+
+class NotificationListView(LoginRequiredMixin, ListView):
+    model = Notification
+    template_name = "notifications/notification_list.html"
+    context_object_name = "notifications"
 
     def get_queryset(self):
-        return PrivateMessage.objects.filter(receiver=self.request.user)
+        return Notification.objects.filter(user=self.request.user, is_read=False).order_by('-created_at')
 
-
-class PrivateMessageCreateView(LoginRequiredMixin, CreateView):
-    model = PrivateMessage
-    form_class = PrivateMessageForm
-    template_name = 'profiles/private_message_form.html'
-    success_url = reverse_lazy('profiles:chat')
-
-    def form_valid(self, form):
-        form.instance.senter = self.request.user
-        return super().form_valid(form)
-    
-class PrivateMessageDeleteView(LoginRequiredMixin, UserIsOwnerMixin, DeleteView):
-    model = PrivateMessage
-    template_name = 'profiles/private_message_confirm_delete.html'
-    success_url = reverse_lazy('profiles:chat')
-
-@login_required
-def messages_view(request):
-    senters = User.objects.exclude(id=request.user.id)
-    return render(request, 'profiles/messages.html', {'senters': senters})
-
-@login_required
-def chat_view(request, username):
-    receiver = get_object_or_404(User, username=username)
-    messages = PrivateMessage.objects.filter(
-        (models.Q(senter=request.user, receiver=receiver) | 
-         models.Q(senter=receiver, receiver=request.user))
-    ).order_by('sent_at')
-    return render(request, 'profiles/chat.html', {'receiver': receiver, 'messages': messages})
+class MarkNotificationAsReadView(LoginRequiredMixin, View):
+    def post(self, request):
+        Notification.objects.filter(user=request.user, is_read=False).update(is_read=True)
+        return JsonResponse({'message': 'Notifications marked as read'})

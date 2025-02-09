@@ -1,0 +1,74 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Group Details</title>
+</head>
+<body>
+    <div style="display: flex; flex-direction: column; align-items: center;">
+        <h1 style="font-family: Arial, Helvetica, sans-serif; margin-bottom: 0px;">Group - {{ group.name }}</h1>
+        {% if user == group.owner %}
+            <a href="{% url 'group_delete' group.id %}" style="font-weight: normal; color: #ff513a;">Delete Group</a>
+            <a href="{% url 'group_update' group.id %}" style="font-weight: normal; color: #0d9e08;">Edit Group</a>
+        {% endif %}
+    </div>
+    <ul>
+
+    <h2 style="font-family: Arial, Helvetica, sans-serif;">Group Details:</h2>
+        <strong>Group Owner: </strong> 
+        <text>{{ group.owner }}</text>
+        <br>
+        <strong>Member Count: </strong>
+        <text>{{ group.member_count }}</text>
+        <br>
+        <strong>Member List: </strong> 
+        <ul>
+            <li>
+                {{ group.member_names }}
+            </li>
+        </ul>
+        <br>
+        <strong>Description: </strong> 
+        <text>{{ group.description }}</text>
+        <br>
+        {% if group.is_verified == True %}
+            <strong>Verified: </strong><text style="color: #0d9e08;">Yes</text>
+        {% else %}
+            <strong>Verified: </strong><text style="color: #ff513a;">No</text>
+        {% endif %}
+    <h2 style="font-family: Arial, Helvetica, sans-serif;">Group Ratings:</h2>
+    {% if group.ratings %}
+        <li>
+            <a href="{% url 'rating_list' group.id %}">View Ratings</a>
+        </li>
+    {% else %}
+        <p>No Ratings for this Group.</p>
+    {% endif %}
+    <li>
+        <a href="{% url 'rating_create' group.id %}">Rate this Group</a>
+    </li>
+
+    
+    <h2 style="font-family: Arial, Helvetica, sans-serif;">Messages</h2>
+    {% for message in messages %}
+        <li>
+            <strong>{{ message.sender.username }}</strong>: {{ message.text }}
+            {% if message.file %}
+                <a href="{{ message.file.url }}">Download File</a>
+            {% endif %}
+            <small>{{ message.sent_at }}</small>
+                
+            {% if user == message.senter %}
+                <a href="{% url 'group_message_edit' pk=message.pk %}">Edit</a> |
+                <a href="{% url 'group_message_delete' pk=message.pk %}">Delete</a>
+            {% endif %}
+        </li>
+    {% endfor %}
+    <a href="{% url 'group_message_create' group.pk %}">Send</a>
+    </ul>    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>

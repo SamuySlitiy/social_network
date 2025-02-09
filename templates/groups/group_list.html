@@ -1,0 +1,30 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'style.css' %}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <title>Groups</title>
+</head>
+<body>
+    <h1 style="font-family: Arial, Helvetica, sans-serif; margin-bottom: 0px; align-self: center;">Social Network Groups</h1>
+    <ul>
+        <h2 style="font-family: Arial, Helvetica, sans-serif;">All Groups:</h2>
+        {% if groups %}
+            {% for group in groups %}
+                <li>
+                    <strong>{{ group.name }}</strong>:
+                    <a href="{% url 'group_detail' group.pk %}">View details</a>
+                </li>
+            {% endfor %}
+        {% else %}
+            <p>No Groups available.</p>
+        {% endif %}
+        <br>
+        <a href="{% url 'group_create' %}">Create a Group</a>
+    </ul>    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+</body>
+</html>

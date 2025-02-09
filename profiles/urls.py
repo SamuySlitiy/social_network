@@ -5,16 +5,15 @@ from .views import *
 urlpatterns = [
     path('', views.UsersListView.as_view(), name='users'),
     path('profile/<int:pk>/', UserDetailView.as_view(), name='user-profile'),
-    path('profile/edit/', UserUpdateView.as_view(), name='user-update'),
+    path('profile/<int:pk>/edit/', UserUpdateView.as_view(), name='user-update'),
 
-    path('messages/', views.messages_view, name='messages'),
-    path('messages/private_messages', PrivateMessageListView.as_view(), name='private-message-list'),
-    path('messages/@<str:username>/', views.chat_view, name='chat'),
-    path('messages/@<str:username>/send_message/', PrivateMessageCreateView.as_view(), name='private-message-create'),
+    path("chat/<int:receiver_id>/", chat_view, name="chat"),
+    path("messages/delete/<int:message_id>/", delete_message, name="delete-message"),
 
-    path('friends/', FriendshipListView.as_view(), name='friendship-list'),
-    path('friends/send_request/', FriendshipCreateView.as_view(), name='friendship-create'),
+    path('user/<int:pk>/followers/', FollowListView.as_view(), name='follow-list'),
+    path('follow/<int:pk>/', FollowDetailView.as_view(), name='follow-detail'),
+    path('follow-toggle/', toggle_follow, name='follow-toggle'),
 
-    path('subscriptions/', SubscriptionListView.as_view(), name='subscription-list'),
-    path('subscriptions/send_request/', SubscriptionCreateView.as_view(), name='subscription-create'),
+    path("notifications/", NotificationListView.as_view(), name="notifications"),
+    path("notifications/read/", MarkNotificationAsReadView.as_view(), name="mark-notifications-read"),
 ]
