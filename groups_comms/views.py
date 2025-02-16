@@ -1,19 +1,23 @@
 from django.urls import reverse_lazy
-from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
-from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView, View
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic.edit import FormMixin # Позволяет отпровлять сообщения в группах
 from django.contrib.auth.mixins import LoginRequiredMixin
 from profiles.mixins import UserIsOwnerMixin
 from .models import Group, GroupMessage, Rating
 from .forms import GroupForm, GroupMessageForm, RatingForm
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 
 # GROUPS
 class GroupListView(ListView):
     model = Group
     template_name = 'groups/group_list.html'
     context_object_name = 'groups'
-    queryset = Group.objects.all().order_by('is_verified')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['groups'] = Group.objects.all().order_by('-is_verified')
+        return context
 
 class GroupCreateView(CreateView, LoginRequiredMixin):
     model = Group
@@ -24,6 +28,15 @@ class GroupCreateView(CreateView, LoginRequiredMixin):
     def form_valid(self, form):
         form.instance.owner = self.request.user
         return super().form_valid(form)
+    
+class GroupDetailView(DetailView):
+    model = Group
+    template_name = 'groups/group_detail.html'
+    context_object_name = 'group'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        return context
 
 class GroupUpdateView(UpdateView, UserIsOwnerMixin):
     model = Group
@@ -38,62 +51,61 @@ class GroupDeleteView(DeleteView):
 
 # GROUO MESSAGES
 
-class GroupDetailView(DetailView):
-    model = Group
-    template_name = 'groups/group_detail.html'
-    context_object_name = 'group'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['messages'] = GroupMessage.objects.order_by("-sent_at")
-        context['message_form'] = GroupMessageForm()
-        return context
-
 class GroupMessageListView(LoginRequiredMixin, ListView):
     model = GroupMessage
-    template_name = "groups/group_detail.html"
+    template_name = "groups/group_chat.html"
     context_object_name = "messages"
 
     def get_queryset(self):
-        group = get_object_or_404(Group, pk=self.kwargs['group_id'])
-        return group.messages.all().order_by("-sent_at")
+        group = get_object_or_404(Group, id=self.kwargs.get("group_id"))
+        return GroupMessage.objects.filter(group=group).select_related("sender").order_by("created_at")
 
-class GroupMessageCreateView(LoginRequiredMixin, CreateView):
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["group"] = get_object_or_404(Group, id=self.kwargs.get("group_id"))
+        context["form"] = GroupMessageForm()
+        return context
+
+class SendMessageView(CreateView):
     model = GroupMessage
     form_class = GroupMessageForm
-    template_name = "groups/group_detail.html"
 
     def form_valid(self, form):
-        group = get_object_or_404(Group, pk=self.kwargs['group_id'])
+        group = get_object_or_404(Group, id=self.kwargs.get("group_id"))
         form.instance.sender = self.request.user
         form.instance.group = group
-        self.object = form.save()
-        
-        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # AJAX request
-            return JsonResponse({
-                'sender': self.object.sender.username,
-                'content': self.object.content,
-                'timestamp': self.object.timestamp.strftime("%Y-%m-%d %H:%M"),
-                'file': self.object.file.url if self.object.file else None
-            })
-        
-        return redirect('group_detail', pk=group.id)
+        message = form.save()
 
-class GroupMessageUpdateView(LoginRequiredMixin, UpdateView):
-    model = GroupMessage
-    form_class = GroupMessageForm
-    template_name = "groups/group_message_edit.html"
+        return JsonResponse({
+            "id": message.id,
+            "sender": message.sender.username,
+            "content": message.content,
+            "file_url": message.file.url if message.file else None,
+            "created_at": message.created_at
+        })
 
-    def get_success_url(self):
-        return reverse_lazy("group_detail", kwargs={"pk": self.object.group.pk})
+class EditMessageView(LoginRequiredMixin, View):
+    def post(self, request, message_id):
+        message = get_object_or_404(GroupMessage, id=message_id)
+        if message.sender != request.user:
+            return JsonResponse({'error': 'You do not have permission to edit this message.'}, status=403)
 
-class GroupMessageDeleteView(LoginRequiredMixin, DeleteView):
-    model = GroupMessage
-    template_name = "groups/group_message_confirm_delete.html"
+        new_content = request.POST.get('content')
+        if new_content:
+            message.content = new_content
+            message.save()
+            return JsonResponse({'id': message.id, 'content': message.content})
+        return JsonResponse({'error': 'No content provided.'}, status=400)
 
-    def get_success_url(self):
-        return reverse_lazy("group_detail", kwargs={"pk": self.object.group.pk})
 
+class DeleteMessageView(LoginRequiredMixin, View):
+    def post(self, request, message_id):
+        message = get_object_or_404(GroupMessage, id=message_id)
+        if message.sender != request.user:
+            return JsonResponse({'error': 'You do not have permission to delete this message.'}, status=403)
+
+        message.delete()
+        return JsonResponse({'success': True})
     
 # REVIEWS
 
@@ -101,6 +113,7 @@ class RatingListView(ListView):
     model = Rating
     template_name = 'groups/rating_list.html'
     context_object_name = 'ratings'
+    paginate_by = 6
 
     def get_queryset(self):
         self.group = get_object_or_404(Group, pk=self.kwargs['group_id'])
@@ -110,33 +123,45 @@ class RatingListView(ListView):
         context = super().get_context_data(**kwargs)
         context['group'] = self.group 
         return context
+    
+class RatingDetailView(DetailView):
+    model = Rating
+    template_name = 'groups/rating_detail.html'
+    context_object_name = 'rating'
 
 class RatingCreateView(LoginRequiredMixin, CreateView):
     model = Rating
     form_class = RatingForm
     template_name = 'groups/rating_create.html'
+    success_url = reverse_lazy('rating_list')
 
     def form_valid(self, form):
         self.group = get_object_or_404(Group, pk=self.kwargs['group_id'])
         form.instance.user = self.request.user
         form.instance.group = self.group 
         return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('group_detail', kwargs={'pk': self.object.group.pk})
-
         
 class RatingUpdateView(LoginRequiredMixin, UpdateView):
     model = Rating
     form_class = RatingForm
-    template_name = 'groups/rating_update.html'
+    success_url = None
 
-    def get_success_url(self):
-        return reverse_lazy('group_detail', kwargs={'pk': self.object.group.pk})
-
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        rating = self.object
+        return JsonResponse({
+            'status': 'success',
+            'rating': {
+                'id': rating.id,
+                'rating': rating.rating,
+                'content': rating.content,
+            }
+        })
 class RatingDeleteView(LoginRequiredMixin, DeleteView):
     model = Rating
-    template_name = 'groups/rating_delete.html'
 
-    def get_success_url(self):
-        return reverse_lazy('group_detail', kwargs={'pk': self.object.group.pk})
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        self.object.delete()
+        return JsonResponse({'status': 'success'})
+

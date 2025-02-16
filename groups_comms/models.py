@@ -21,9 +21,9 @@ class Group(models.Model):
 class GroupMessage(models.Model):
     group = models.ForeignKey(Group, related_name='group_messages', on_delete=models.CASCADE)
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
-    text = models.TextField(blank=True, null=True)
+    content = models.TextField(blank=True, null=True)
     file = models.FileField(upload_to='group_files/', blank=True, null=True)
-    sent_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f'Message from {self.sender.username} in {self.group.name}'
