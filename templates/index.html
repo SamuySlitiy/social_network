@@ -15,80 +15,216 @@
 </head>
 <body>
     <nav class="d-flex flex-column p-3 bg-light" style="width: 100px; height: 100vh; position: fixed;">
-        <img src="{{ user.profile_picture.url }}" class="profile-image" onclick="window.location.href='{% url 'user-profile' user.id %}'">
+        <img src="{{ user.profile_picture.url }}"  onclick="window.location.href='{% url 'user-profile' user.id %}'" style="position: absolute; top: 18px; left: 16px; width: 65px; height: 65px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;">
         <br>
         <br>
         <br>
-        <text>----------</text>
-        <br>
-        <div class="d-flex flex-column">
-            <a href="{% url 'users' %}" class="btn btn-primary a-button">
-                <i class="fas fa-users"></i>
+        <hr>
+        <div class="d-flex flex-column justify-content-center align-items-center">
+            <a href="{% url 'users' %}" class="btn btn-primary d-flex justify-content-center align-items-center mt-2">
+                <i class="fa-solid fa-user-group">
+                    <span style="font-size: 11px; font-family: monospace;">Users</span>
+                </i>
             </a>
-            <br>
-            <a href="{% url 'chats' %}" class="btn btn-success a-button">
-                <i class="fas fa-comments"></i>
+        </div>
+        <div class="d-flex flex-column justify-content-center align-items-center">
+            <a href="{% url 'chats' %}" class="btn btn-primary d-flex justify-content-center align-items-center mt-3 mb-1">
+                <i class="fa-solid fa-comments">
+                    <span style="font-size: 10.5px; font-family: monospace;">Your Chats</span>
+                </i>
             </a>
-            <br>
-            <a href="{% url 'group_list' %}" class="btn btn-warning a-button">
-                <i class="fas fa-users-cog"></i>
+        </div>
+        <hr>
+        <div class="d-flex flex-column justify-content-center align-items-center">
+            <a href="{% url 'post-list' %}" class="btn btn-danger d-flex justify-content-center align-items-center mt-2 mb-1">
+                <i class="fa-solid fa-signs-post">
+                    <span style="font-size: 11px; font-family: monospace;">Posts</span>
+                </i>
+            </a>
+        </div>
+        <hr>
+        <div class="d-flex flex-column justify-content-center align-items-center">
+            <a href="{% url 'group_list' %}" class="btn btn-warning d-flex justify-content-center align-items-center mt-2">
+                <i class="fa-solid fa-users">
+                    <span style="font-size: 11px; font-family: monospace;">Groups</span>
+                </i>
             </a>
         </div>
     </nav>
-    
     <div class="container">
-        <h1 class="text-center display-1">Welcome to the Social Network.</h1>
-        <div class="row mt-4">
+        <h1 class="text-center display-1">
+            Welcome to the 
+            <text style="text-shadow: 5px 5px #000000;">Social Network.</text>
+            
+            <a href="{% url 'logout' %}" class="btn btn-danger">
+                <i class="fa-solid fa-user-slash">
+                    <span style="font-size: 15px; margin-left: 5px; font-family: monospace;">Logout</span>
+                </i>
+            </a>
+        </h1>
+        <hr>
+        <div class="row">
             <div class="col-md-12">
-                <h2>Notes</h2>
+                <div class="d-flex align-items-start">
+                    <div class="col">
+                        <h2 class="display-4">Notes</h2>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createNoteModal">
+                            <i class="fa-solid fa-highlighter">
+                                <span style="font-size: 14.5px; margin-left: 5px; font-family: monospace;"> Write a Note</span>
+                            </i>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="row row-cols-1 row-cols-md-4 g-4 mt-2">
                     {% for note in notes %}
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ note.author }}</h5>
-                                <p class="card-text">{{ note.content }}</p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#noteModal{{ note.id }}">View</button>
-                            </div>
+                        <div class="col mt-2">
+                            <div class="card">
+                                <div class="card-body" style="overflow: hidden;">
+                                    <h5 class="card-title">{{ note.author }}</h5>
+                                    <p class="card-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ note.content }}</p>
+                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#noteModal{{ note.id }}">View</button>
+                                </div>
+                            </div>                        
                         </div>
-                    </div>
-                    <div class="modal fade" id="noteModal{{ note.id }}" tabindex="-1">
+
+                        <div class="modal fade" id="noteModal{{ note.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header d-flex flex-column align-items-center">
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        <h5 class="modal-title">Note from: <small style="color: darkgoldenrod;">{{ note.author }}</small></h5>
+                                    </div>
+                                    <div class="modal-body" style="max-height: 200px; overflow-y: hidden;">
+                                        <p style="text-wrap: wrap; white-space: normal;">
+                                            {{ note.content }}
+                                        </p>
+                                    </div>
+                                    <div class="modal-footer d-flex justify-content-start">
+                                        <p style="color: blue;">{{ note.created_at }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>     
+
+                    {% endfor %}  
+
+                    <div class="modal fade" id="createNoteModal" tabindex="-1" aria-labelledby="createNoteModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
                                 <div class="modal-header d-flex flex-column align-items-center">
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    <h5 class="modal-title">Note from: <small style="color: green;">{{ note.author }}</small></h5>
+                                    <h5 class="modal-title" id="createNoteModalLabel">Create a Note</h5>
                                 </div>
                                 <div class="modal-body">
-                                    <p>{{ note.content }}</p>
-                                </div>
-                                <div class="modal-footer d-flex justify-content-start">
-                                    <p style="color: blue;">{{ note.created_at }}</p>
+                                    <form id="noteForm" method="post" action="{% url 'note-create' %}">
+                                        {% csrf_token %}
+
+                                        <div class="mb-3">
+                                            <label for="noteContent" class="form-label">Note Content</label>
+                                            <textarea class="form-control" id="noteContent" name="content" rows="2" maxlength="100" required></textarea>
+                                        </div>      
+
+                                        <button type="submit" class="btn btn-success">Confirm</button>
+                                        <button type="button" class="btn btn-danger" data-bs-dismiss="modal" aria-label="Close">Cancel</button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
+
                 </div>
             </div>
-            <div class="col-md-8 mt-4">
-                <h2>Posts</h2>
-                <div class="row row-cols-1 row-cols-md-3 g-4 mt-2">
+
+            <div class="col-md-12 mt-3">
+                <hr>
+                <div class="align-items-start">
+                    <div class="col mt-2">
+                        <h2 class="display-4">Posts</h2>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                            <i class="fa-solid fa-circle-plus">
+                                <span style="font-size: 14.5px; margin-left: 5px; font-family: monospace;">Create a Post</span>
+                            </i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="row row-cols-md-2 g-4 mt-2 mb-3">
                     {% for post in posts %}
-                    <div class="col">
-                        <div class="card">
-                            <div class="card-body">
-                                <h5 class="card-title">{{ post.title }}</h5>
-                                <p class="card-text">{{ post.content|truncatewords:20 }}</p>
-                                <a href="{% url 'post-detail' post.id %}" class="btn btn-secondary">Read More</a>
+                        <div class="col mt-2">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h5 class="text-center">Post from: <text style="color: darkgoldenrod;">{{ post.author }}</text></h5>
+                                    <br>
+                                    <p class="card-text"><strong>{{ post.content|truncatewords:20 }}</strong></p>
+                                    <div class="d-flex justify-content-center mb-3">
+                                    </div>
+                                    <button class="btn btn-secondary view-post" 
+                                            data-author="{{ post.author.username }}"
+                                            data-content="{{ post.content }}" 
+                                            data-image="{% if post.image %}{{ post.image.url }}{% else %}/static/default-image.jpg{% endif %}" 
+                                            data-date="{{ post.created_at }}"
+                                            data-detail-url="{% url 'post-detail' post.id %}"
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#postDetailModal">Read More</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Post Detail Modal -->
+                <div class="modal fade" id="postDetailModal" tabindex="-1" aria-labelledby="postDetailModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="postDetailModalLabel">Post Details:</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <h5 id="postAuthor" class="text-muted"></h5>
+                                <p id="postContent"></p>
+                                <img id="postImage" src="{{ post.image.url }}" alt="Post Image" class="img-fluid mb-3" style="max-height: 400px; width: 100%; object-fit: cover;">
+                                <p id="postDate" class="text-muted"></p>
+                            </div>
+                            <div class="modal-footer">
+                                <a id="postDetailLink" href="#" class="btn btn-primary">View Full Post</a>
                             </div>
                         </div>
                     </div>
-                    {% endfor %}
                 </div>
+
+                <div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="createPostModalLabel">Create a Post</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form id="postForm" method="post" enctype="multipart/form-data">
+                                    {% csrf_token %}
+                                
+                                    <div class="mb-3">
+                                        <label for="content" class="form-label">Write something about your post</label>
+                                        <textarea class="form-control" id="content" name="content" rows="4" maxlength="250"></textarea>
+                                    </div>      
+                                
+                                    <div class="mb-3">
+                                        <label for="image" class="form-label">Insert an Image</label>
+                                        <input type="file" class="form-control" id="image" name="image" required>
+                                    </div>      
+                                
+                                    <button type="submit" class="btn btn-success">Save Post</button>
+                                </form>                                                     
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     </div>
+    
 <script>
     function fetchNotifications() {
         $.ajax({
@@ -135,6 +271,54 @@
 
         $("#mark-as-read").click(markNotificationsAsRead);
     });
+
+    $(document).ready(function() {
+        $("#noteForm").submit(function(e) {
+            e.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "{% url 'note-create' %}",
+                data: $(this).serialize(),
+                success: function(response) {
+                    $("#createNoteModal").modal('hide');
+                    location.reload();  // Refresh to show new note
+                }
+            });
+        });
+    
+        $("#postForm").submit(function(e) {
+            e.preventDefault();
+            $.ajax({
+                type: "POST",
+                url: "{% url 'post-create' %}",
+                data: $(this).serialize(),
+                success: function(response) {
+                    $("#createPostModal").modal('hide');
+                    location.reload();  // Refresh to show new post
+                }
+            });
+        });
+    });
 </script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        document.querySelectorAll(".view-post").forEach(button => {
+            button.addEventListener("click", function() {
+                let author = this.getAttribute("data-author")
+                let content = this.getAttribute("data-content");
+                let image = this.getAttribute("data-image");
+                let created_at = this.getAttribute("data-date");
+                let detailUrl = this.getAttribute("data-detail-url");
+
+                document.getElementById("postAuthor").innerText = author;
+                document.getElementById("postContent").innerText = content;
+                document.getElementById("postImage").src = image;
+                document.getElementById("postDate").innerText = "Posted on: " + created_at;
+                document.getElementById("postDetailLink").href = detailUrl;
+            });
+        });
+    });
+</script>
+
 </body>
 </html>

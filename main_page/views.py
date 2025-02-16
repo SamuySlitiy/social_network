@@ -54,7 +54,7 @@ class IndexPage(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['posts'] = Post.objects.all().order_by('created_at')
-        context['notes'] = Note.objects.filter(author=self.request.user).order_by('created_at')
+        context['notes'] = Note.objects.all().order_by('created_at')
         return context
 
 # POSTS & LIKES
@@ -73,22 +73,27 @@ class PostListView(ListView):
     model = Post
     template_name = "main_page/post_list.html"
     context_object_name = 'posts'
+    paginate_by = 6
     queryset = Post.objects.all().order_by('created_at')
+
+    def get(self, request):
+        super().get(request)
+
+        if request.headers.get('x-requested-with') == 'XHLHttpRequest':
+            return render(request, 'main_page/p_list.html', context=self.get_context_data())
+
+        return render(request, self.template_name, context=self.get_context_data())
 
 class PostDetailView(DetailView):
     model = Post
     template_name = "main_page/post_detail.html"
     context_object_name = "post"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['comments'] = Comment.objects.filter(post=self.object).order_by('created_at')
-        return context
+    success_url = reverse_lazy('post-detail')
 
 class PostDeleteView(LoginRequiredMixin, DeleteView):
     model = Post
     template_name = "main_page/post_delete.html"
-    success_url = reverse_lazy('main-page') 
+    success_url = reverse_lazy('post-list') 
 
     def get_queryset(self):
         return Post.objects.filter(author=self.request.user)
@@ -162,14 +167,12 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         form.instance.author = self.request.user
         form.instance.post = get_object_or_404(Post, pk=self.kwargs['post_id'])
         return super().form_valid(form)
-    
-    def get_success_url(self):
-        return reverse_lazy('comment-list', kwargs={'post_id': self.object.post.id})
 
 class CommentListView(ListView):
     model = Comment
     template_name = "main_page/comment_list.html"
     context_object_name = 'comments'
+    paginate_by = 6
 
     def get_queryset(self):
         self.post = get_object_or_404(Post, pk=self.kwargs['post_id'])
@@ -179,6 +182,14 @@ class CommentListView(ListView):
         context = super().get_context_data(**kwargs)
         context['post'] = self.post  # Make sure `post` is available for the template
         return context
+    
+    def get(self, request):
+        super().get(request)
+
+        if request.headers.get('x-requested-with') == 'XHLHttpRequest':
+            return render(request, 'main_page/c_list.html', context=self.get_context_data())
+
+        return render(request, self.template_name, context=self.get_context_data())
     
 class CommentUpdateView(LoginRequiredMixin, UpdateView):
     model = Comment

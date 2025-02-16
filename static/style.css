@@ -1,20 +1,14 @@
-.profile-image {
-    position: absolute;
-    top: 25px;
-    left: 24px;
-    width: 50px;
-    height: 50px;
-    border-radius: 45%;
+.chat-box {
+    height: 500px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
 }
-
-.a-button {
-    position: relative;
-    left: 12px;
-    width: 40px;
-    height: 40px;
-    border-radius: 45%;
-}
-
-.note-card {
-    display: flex;
+#messageForm {
+    position: fixed;
+    bottom: 100;
+    width: 100%;
+    background: white;
+    padding: 10px;
+    border-top: 1px solid #ccc;
 }

@@ -37,12 +37,18 @@ class UserDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         self.user = get_object_or_404(User, pk=self.kwargs['pk'])
+        followers = Follow.objects.filter(is_followed=self.user).select_related("is_following")
+        following = Follow.objects.filter(is_following=self.user).select_related("is_followed")
         context = super().get_context_data(**kwargs)
         context['username'] = self.user.username
         context['first_name'] = self.user.user_first_name()
         context['last_name'] = self.user.user_last_name()
         context['email'] = self.user.user_email()
+        context["followers"] = followers 
+        context["following"] = following  # List of Follow objects where user follows others
+
         return context
+
     
 class UserUpdateView(LoginRequiredMixin, UpdateView):
     model = User
@@ -62,7 +68,7 @@ class FollowListView(LoginRequiredMixin, ListView):
     model = Follow
     template_name = "profiles/follow_list.html"
     context_object_name = 'follows'
-
+    
     def get_queryset(self):
         user = get_object_or_404(User, pk=self.kwargs['pk'])
         return Follow.objects.filter(
@@ -75,8 +81,10 @@ class FollowDetailView(LoginRequiredMixin, DetailView):
     template_name = "profiles/follow_detail.html"
     context_object_name = 'follow'
 
-    def get_object(self, queryset=None):
-        return get_object_or_404(Follow, pk=self.kwargs['pk'])
+    def get_queryset(self):
+        user = get_object_or_404(User, pk=self.kwargs['pk'])
+        return Follow.objects.filter(is_following=user).order_by('-created_at')
+    
 
 @login_required
 def toggle_follow(request):
