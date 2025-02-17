@@ -24,7 +24,7 @@
         </div>
         <hr>
         <div class="d-flex flex-column justify-content-center align-items-center">
-            <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPostModal">
+            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createPostModal">
                 <i class="fa-solid fa-circle-plus">
                     <span style="font-size: 12px; margin-left: 5px; font-family: monospace;">Create a Post</span>
                 </i>
@@ -43,7 +43,7 @@
         <div class="row row-cols-1 row-cols-md-3 g-4">
             {% for post in page_obj %}
             <div class="col">
-                <div class="card">
+                <div class="card shadow p-2">
                     {% if post.image %}
                         <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
                     {% endif %}

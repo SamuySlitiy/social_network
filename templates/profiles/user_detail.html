@@ -183,14 +183,14 @@
     $(document).ready(function () {
         $("#follow-btn").click(function () {
             var button = $(this);
-            var userId = button.data("user-id");  // Get user ID from button attribute
+            var userId = button.data("user-id");
 
             $.ajax({
-                url: "{% url 'follow-toggle' %}",  // Ensure this URL is correct in urls.py
+                url: "{% url 'follow-toggle' %}", 
                 type: "POST",
                 data: {
-                    user_id: userId,  // Send user ID in the request
-                    csrfmiddlewaretoken: "{% csrf_token %}"
+                    user_id: userId, 
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
                 },
                 success: function (response) {
                     if (response.followed) {

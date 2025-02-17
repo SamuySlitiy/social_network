@@ -99,9 +99,9 @@ def toggle_follow(request):
 
         if not created:
             follow.delete()
-            return JsonResponse({"followed": False})  # Unfollowed
+            return JsonResponse({"followed": False})
         create_notification(user_to_follow, request.user, 'follow', f"{request.user.username} is now following you!")
-        return JsonResponse({"followed": True})  # Followed
+        return JsonResponse({"followed": True}) 
 
     return JsonResponse({"error": "Invalid request"}, status=400)
 

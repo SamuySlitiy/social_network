@@ -15,8 +15,8 @@ urlpatterns = [
     path('message/<int:message_id>/delete/', DeleteMessageView.as_view(), name='delete_message'),
 
     path('groups/<int:group_id>/ratings/', RatingListView.as_view(), name='rating_list'),
-    path('group/<int:group_id>/rating/<int:pk>/', RatingListView.as_view(), name='rating_detail'),
-    path('groups/<int:group_id>/ratings/add/', RatingCreateView.as_view(), name='rating_create'),
-    path('group/<int:group_id>/rating/<int:pk>/update/', RatingUpdateView.as_view(), name='rating_update'),
-    path('group/<int:group_id>/rating/<int:pk>/delete/', RatingDeleteView.as_view(), name='rating_delete'),
+    path('groups/<int:group_id>/ratings/<int:pk>/', RatingListView.as_view(), name='rating_detail'),
+    path('groups/<int:group_id>/ratings/create/', RatingCreateView.as_view(), name='rating_create'),
+    path('groups/<int:group_id>/ratings/<int:pk>/update/', RatingUpdateView.as_view(), name='rating_update'),
+    path('groups/<int:group_id>/ratings/<int:pk>/delete/', RatingDeleteView.as_view(), name='rating_delete'),
 ]

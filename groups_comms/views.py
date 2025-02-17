@@ -113,7 +113,6 @@ class RatingListView(ListView):
     model = Rating
     template_name = 'groups/rating_list.html'
     context_object_name = 'ratings'
-    paginate_by = 6
 
     def get_queryset(self):
         self.group = get_object_or_404(Group, pk=self.kwargs['group_id'])
@@ -132,36 +131,39 @@ class RatingDetailView(DetailView):
 class RatingCreateView(LoginRequiredMixin, CreateView):
     model = Rating
     form_class = RatingForm
-    template_name = 'groups/rating_create.html'
-    success_url = reverse_lazy('rating_list')
-
-    def form_valid(self, form):
+    template_name = "groups/rating_create.html"
+    
+    def get_context_data(self, **kwargs):
         self.group = get_object_or_404(Group, pk=self.kwargs['group_id'])
+        context = super().get_context_data(**kwargs)
+        context['group'] = self.group
+        return context
+    
+    def form_valid(self, form):
+        form.instance.group = get_object_or_404(Group, pk=self.kwargs['group_id'])
         form.instance.user = self.request.user
-        form.instance.group = self.group 
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('rating_list', kwargs={'group_id': self.object.group.id})
         
 class RatingUpdateView(LoginRequiredMixin, UpdateView):
     model = Rating
     form_class = RatingForm
-    success_url = None
+    template_name = 'groups/rating_update.html'
 
-    def form_valid(self, form):
-        response = super().form_valid(form)
-        rating = self.object
-        return JsonResponse({
-            'status': 'success',
-            'rating': {
-                'id': rating.id,
-                'rating': rating.rating,
-                'content': rating.content,
-            }
-        })
+    def get_context_data(self, **kwargs):
+        self.group = get_object_or_404(Group, pk=self.kwargs['group_id'])
+        context = super().get_context_data(**kwargs)
+        context['group'] = self.group
+        return context
+
+    def get_success_url(self):
+        return reverse_lazy('rating_list', kwargs={'group_id': self.object.group.id})
+
 class RatingDeleteView(LoginRequiredMixin, DeleteView):
     model = Rating
+    template_name = 'groups/rating_delete.html'
 
-    def post(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        self.object.delete()
-        return JsonResponse({'status': 'success'})
-
+    def get_success_url(self):
+        return reverse_lazy('rating_list', kwargs={'group_id': self.object.group.id})

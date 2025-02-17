@@ -48,8 +48,8 @@
             {% for group in groups %}
                 {% if group.is_verified %}
                     <div class="col">
-                        <div class="card border-primary h-100" style="border-width: 3px;">
-                            <div class="card-body">
+                        <div class="card shadow p-2">
+                            <div class="card shadow p-3 border-primary h-100" style="border-width: 2px;">
                                 <h5 class="card-title">
                                     {{ group.name }}
                                     <i class="fa-solid fa-check-circle text-primary"></i>
@@ -61,8 +61,8 @@
                     </div>
                 {% else %}
                     <div class="col">
-                        <div class="card h-100">
-                            <div class="card-body">
+                        <div class="card shadow p-2 h-100">
+                            <div class="card shadow p-3">
                                 <h5 class="card-title">{{ group.name }}</h5>
                                 <p class="card-text">{{ group.description|truncatewords:15 }}</p>
                                 <a href="{% url 'group_detail' group.id %}" class="btn btn-primary">View Group</a>
