@@ -32,29 +32,32 @@
         </div>
     </nav>
 <div class="container">
-    <h1>Chat with {{ receiver.username }}</h1>
-
-    <ul id="message-list">
-        {% for message in messages %}
-            <div class='chat-container'>
-                <li>
-                    {% if message.sender == self.request.user %}
-                        <strong>You:</strong> {{ message.text }}
-                        <br><small>{{ message.sent_at }}</small>
-                    {% else %}
-                        <strong>{{ message.sender.username }}:</strong> {{ message.text }}
-                        <br><small>{{ message.sent_at }}</small>
-                    {% endif %}
-                </li>
-            </div>
-        {% endfor %}
-    </ul>
-
+    <h1 class="text-center display-1">Chat with 
+        <text style="font-weight: bolder;">{{ receiver.username }}</text>
+    </h1>
+    <hr>
+    <div class='chat-box'>
+        <ul id="message-list">
+            {% for message in messages %}
+                    <li>
+                        {% if message.sender == self.request.user %}
+                            <strong>You:</strong> {{ message.text }}
+                            <br><small>{{ message.sent_at }}</small>
+                        {% else %}
+                            <strong>{{ message.sender.username }}:</strong> {{ message.text }}
+                            <br><small>{{ message.sent_at }}</small>
+                        {% endif %}
+                    </li>
+            {% endfor %}
+        </ul>
+    </div>
+    <hr>
     <form id="message-form">
         {% csrf_token %}
 
-        <label for="text" class="form-label"><strong>Text:</strong></label>
+        <label for="message-text" class="form-label"><strong>Text:</strong></label>
         <textarea class="form-control" id="message-text" name="text" placeholder="What are you gonna type this time?"></textarea>
+
         <button class="btn btn-primary" type="submit" style="margin: 10px;">Send</button>
     </form>
 </div>

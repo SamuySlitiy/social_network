@@ -104,8 +104,8 @@ class LikeListView(ListView):
     context_object_name = "likes"
 
     def get_queryset(self):
-        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
-        return Like.objects.filter(post=post)
+        post_id = self.kwargs.get('post')
+        return Like.objects.filter(post_id=post_id).select_related('user')
 
 class LikeCreateView(LoginRequiredMixin, View):
     def post(self, request, post_id):
@@ -145,9 +145,18 @@ class NoteListView(ListView):
     model = Note
     template_name = "main_page/note_list.html"
     context_object_name = 'notes'
+    paginate_by = 6
 
     def get_queryset(self):
-        return Note.objects.filter(author=self.request.user).order_by('created_at')
+        return Note.objects.all().order_by('created_at')
+    
+    def get(self, request):
+        super().get(request)
+
+        if request.headers.get('x-requested-with') == 'XHLHttpRequest':
+            return render(request, 'main_page/n_list.html', context=self.get_context_data())
+
+        return render(request, self.template_name, context=self.get_context_data())
 
 class NoteDeleteView(LoginRequiredMixin, DeleteView):
     model = Note
@@ -162,6 +171,9 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
     model = Comment
     form_class = CommentForm
     template_name = "main_page/comment_create.html"
+    
+    def get_success_url(self):
+        return reverse_lazy('comment-list', kwargs={'post_id': self.object.post.id})
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -180,16 +192,16 @@ class CommentListView(ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['post'] = self.post  # Make sure `post` is available for the template
+        context['post'] = self.post
         return context
     
-    def get(self, request):
+'''    def get(self, request):
         super().get(request)
 
         if request.headers.get('x-requested-with') == 'XHLHttpRequest':
             return render(request, 'main_page/c_list.html', context=self.get_context_data())
 
-        return render(request, self.template_name, context=self.get_context_data())
+        return render(request, self.template_name, context=self.get_context_data())'''
     
 class CommentUpdateView(LoginRequiredMixin, UpdateView):
     model = Comment
@@ -202,7 +214,6 @@ class CommentUpdateView(LoginRequiredMixin, UpdateView):
 class CommentDeleteView(LoginRequiredMixin, DeleteView):
     model = Comment
     template_name = "main_page/comment_delete.html"
-    success_url = reverse_lazy('comment-list')
     
     def get_success_url(self):
         return reverse_lazy('comment-list', kwargs={'post_id': self.object.post.id})

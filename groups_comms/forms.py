@@ -10,11 +10,10 @@ class GroupForm(forms.ModelForm):
     )
     class Meta:
         model = Group
-        fields = ['name', 'description', 'members', 'is_verified']
+        fields = ['name', 'description', 'members']
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control'}),
             'description': forms.Textarea(attrs={'class': 'form-control'}),
-            'is_verified': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         
 class GroupMessageForm(forms.ModelForm):
@@ -32,4 +31,5 @@ class RatingForm(forms.ModelForm):
         fields = ['content', 'rating']
         widgets = {
             'content': forms.Textarea(attrs={'class': 'form-control'}),
+            'rating': forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'max': 5, 'placeholder': '1-5'}),
         }
