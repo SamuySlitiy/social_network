@@ -33,7 +33,11 @@
         <hr class="mb-4">
         <form method="get" action="">
             <input type="text" name="q" placeholder="Search users..." value="{{ search_query }}">
-            <button class="btn btn-secondary" type="submit">Search</button>
+            <button class="btn btn-secondary" type="submit">
+                <i class="fa-solid fa-eye">
+                    <span style="font-size: 14px; margin-left: 5px; font-family: monospace">Search</span>
+                </i>
+            </button>
         </form>
 
         {% if users %}
@@ -44,7 +48,9 @@
                         <span style="font-weight: bold;">{{ user.username }}</span>
                         <small>({{ user.email }})</small>
                         <a class="btn btn-primary" href="{% url 'user-profile' user.id %}">
-                            <i class="person person-circle"></i> View Profile
+                            <i class="fa-solid fa-circle-user">
+                                <span style="font-size: 13px; margin-left: 5px; font-family: monospace">View Profile</span>
+                            </i>
                         </a>
                     </li>
                 {% endfor %}

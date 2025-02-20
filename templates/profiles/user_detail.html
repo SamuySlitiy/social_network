@@ -113,7 +113,11 @@
                                 <input type="file" class="form-control" id="profile_picture" name="profile_picture">
                             </div>
 
-                            <button type="submit" class="btn btn-primary">Save Changes</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fa-solid fa-check">
+                                    <span style="font-size: 13px; margin-left: 5px; font-family: monospace;">Confirm</span>
+                                </i>
+                            </button>
                         </form>
                     </div>
                 </div>
@@ -202,7 +206,7 @@
                     }
                 },
                 error: function () {
-                    alert("Error toggling follow status. You cant follow yourself!");
+                    alert("Error toggling follow status!");
                 }
             });
         });

@@ -48,8 +48,12 @@
                         <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
                     {% endif %}
                     <div class="card-body">
-                        <h5 class="card-title">{{ post.title }}</h5>
-                        <p class="card-text">{{ post.content|truncatewords:20 }}</p>
+                        <div class="row row-cols-md-3 mb-2">
+                            <img src="{{ user.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' post.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                            <h5 class="text-center">{{ post.author }}</h5>
+                        </div>
+                        <hr>
+                        <p class="card-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bolder;">{{ post.content|truncatewords:20 }}</p>
                         <button class="btn btn-primary view-post"
                                 data-author="{{ post.author.username }}"
                                 data-content="{{ post.content }}"
@@ -65,17 +69,21 @@
             </div>
             {% endfor %}
         </div>
-        <nav aria-label="..." class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% for page_num in page_obj.paginator.page_range %}
-                    <li class="page-item active" aria-current="page">
-                        <a href="?page={{ page_num }}" class="display: inline-block">
-                            <span class="page-link">Page #{{ page_num }}</span>
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </nav>
+        {% if posts %}
+            <nav aria-label="..." class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% for page_num in page_obj.paginator.page_range %}
+                        <li class="page-item active" aria-current="page">
+                            <a href="?page={{ page_num }}" class="display: inline-block">
+                                <span class="page-link">Page #{{ page_num }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        {% else %}
+            <p class="text-center mt-4">No posts yet.</p>
+        {% endif %}
     </div>
 
 
