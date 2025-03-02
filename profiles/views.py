@@ -46,6 +46,7 @@ class UserDetailView(DetailView):
         context['email'] = self.user.user_email()
         context["followers"] = followers 
         context["following"] = following  # List of Follow objects where user follows others
+        context["is_acc_following"] = Follow.objects.filter(is_following=self.request.user, is_followed=self.user).exists()
 
         return context
 
@@ -58,7 +59,7 @@ class UserUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         self.object = form.save()
         
-        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':  # AJAX
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
             return JsonResponse({"message": "Profile updated successfully"})
         
         return super().form_valid(form)
@@ -122,17 +123,32 @@ class MessageCreateView(LoginRequiredMixin, CreateView):
             "sent_at": message.sent_at.strftime("%Y-%m-%d %H:%M"),
         })
     
+class MessageDeleteView(LoginRequiredMixin, DeleteView):
+    model = PrivateMessage
+    template_name = "profiles/message_delete.html"
+    pk_url_kwarg = "message_id"
+
+    def get_success_url(self):
+        receiver_id = self.object.receiver.id
+        return reverse_lazy("chat", kwargs={"receiver_id": receiver_id})
+    
+class MessageEditView(LoginRequiredMixin, UpdateView):
+    model = PrivateMessage
+    form_class = PrivateMessageForm
+    template_name = 'profiles/message_update.html'
+    pk_url_kwarg = "message_id"
+
+    def get_success_url(self):
+        receiver_id = self.object.receiver.id
+        return reverse_lazy("chat", kwargs={"receiver_id": receiver_id})
+
 class MessageListView(LoginRequiredMixin, ListView):
     template_name = "profiles/messages.html"
     context_object_name = "messages"
 
     def get_queryset(self):
         receiver = get_object_or_404(User, pk=self.kwargs["receiver_id"])
-        return PrivateMessage.objects.filter(
-            senter=self.request.user, receiver=receiver
-        ) | PrivateMessage.objects.filter(
-            senter=receiver, receiver=self.request.user
-        ).order_by("sent_at")
+        return PrivateMessage.objects.filter(senter=self.request.user, receiver=receiver) | PrivateMessage.objects.filter(senter=receiver, receiver=self.request.user).order_by("sent_at")
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -144,17 +160,11 @@ class ChatListView(LoginRequiredMixin, ListView):
     context_object_name = "chat_users"
 
     def get_queryset(self):
-        return User.objects.exclude(id=self.request.user.id)  # Show all users except self
-
-@login_required
-def delete_message(request, message_id):
-    message = get_object_or_404(PrivateMessage, id=message_id, senter=request.user)
-    
-    if request.method == "POST":
-        message.delete()
-        return JsonResponse({"success": True}) 
-
-    return JsonResponse({"error": "Invalid request"}, status=400)
+        following_users = Follow.objects.filter(is_following=self.request.user).values_list('is_followed', flat=True)
+        followed_users = Follow.objects.filter(is_followed=self.request.user).values_list('is_following', flat=True)
+        return  User.objects.filter(id__in=
+            set(following_users) | 
+            set(followed_users))
 
 # NOTIFICATIONS
 

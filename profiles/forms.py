@@ -12,4 +12,4 @@ class PrivateMessageForm(forms.ModelForm):
         model = PrivateMessage
         fields = ['text']
 
-    text = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), label="Message")
+        

@@ -44,8 +44,12 @@
                         <div class="card shadow p-1">
                             <div class="card-body" style="overflow: hidden;">
                                 <div class="row row-cols-md-3 mb-3">
-                                    <img src="{{ user.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' note.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
-                                    <h5>{{ note.author }}</h5>
+                                    {% if note.author.profile_picture %}
+                                        <img src="{{ note.author.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' note.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                                    {% endif %}
+                                    <div class="mt-2 ">
+                                        <h5>{{ note.author }}</h5>
+                                    </div>
                                 </div>
                                 <hr>
                                 <p class="card-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bolder;">{{ note.content }}</p>
@@ -102,17 +106,19 @@
                     </div>
                 </div>
             </div>
-            {% if notes %}
+            {% if page_obj %}
                 <nav aria-label="..." class="mt-4">
-                    <ul class="pagination justify-content-center">
-                        {% for page_num in page_obj.paginator.page_range %}
-                            <li class="page-item active" aria-current="page">
-                                <a href="?page={{ page_num }}" class="display: inline-block">
-                                    <span class="page-link">Page #{{ page_num }}</span>
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
+                    {% if page_obj.paginator.num_pages > 1 %}
+                        <ul class="pagination justify-content-center">
+                            {% for page_num in page_obj.paginator.page_range %}
+                                <li class="page-item {% if page_num == page_obj.number %}active{% endif %}" aria-current="page">
+                                    <a href="?page={{ page_num }}" class="display: inline-block">
+                                        <span class="page-link">Page #{{ page_num }}</span>
+                                    </a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
                 </nav>
             {% else %}
                 <p class="text-center mt-4">No notes. </p>

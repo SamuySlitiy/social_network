@@ -3,15 +3,14 @@ from django.shortcuts import render, redirect
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.core.paginator import Paginator
-from django.views import View
 from django.views.generic import CreateView, UpdateView, DeleteView, DetailView, ListView, TemplateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404
-from .models import Post, Comment
+from .models import Post, Note, Like, Comment
 from .forms import *
 from profiles.utils import create_notification
+from profiles.models import Notification
 
 def register_view(request):
     if request.method == 'POST':
@@ -53,6 +52,7 @@ class IndexPage(TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context['notifications'] = Notification.objects.all().order_by('created_at')
         context['posts'] = Post.objects.all().order_by('created_at')
         context['notes'] = Note.objects.all().order_by('created_at')
         return context
@@ -104,30 +104,24 @@ class LikeListView(ListView):
     context_object_name = "likes"
 
     def get_queryset(self):
-        post_id = self.kwargs.get('post')
-        return Like.objects.filter(post_id=post_id).select_related('user')
+        post_id = self.kwargs.get('post_id')
+        return Like.objects.filter(post=post_id).select_related('user')
 
-class LikeCreateView(LoginRequiredMixin, View):
-    def post(self, request, post_id):
-        post = get_object_or_404(Post, pk=post_id)
-        like, created = Like.objects.get_or_create(user=request.user, post=post)
-        
-        if created:
-            create_notification(post.user, request.user, 'like', f"{request.user.username} liked your post.")
-        
-        return JsonResponse({'message': 'Liked successfully', 'likes_count': post.likes.count()})
+@login_required
+def toggle_like(request):
+    if request.method == "POST":
+        post_id = request.POST.get("post_id")
+        post_to_like = get_object_or_404(Post, id=post_id)
 
+        like, created = Like.objects.get_or_create(user=request.user, post=post_to_like)
 
-class LikeDeleteView(LoginRequiredMixin, View):
-    def post(self, request, post_id):
-        post = get_object_or_404(Post, pk=post_id)
-        like = Like.objects.filter(user=request.user, post=post)
-
-        if like.exists():
+        if not created:
             like.delete()
-            return JsonResponse({'message': 'Unliked successfully', 'likes_count': post.likes.count()})
+            return JsonResponse({"liked": False})
         
-        return JsonResponse({'message': 'Not liked yet'}, status=400)
+        return JsonResponse({"liked": True})
+
+    return JsonResponse({"error": "Invalid request"}, status=400)
 
 # NOTES
 

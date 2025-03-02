@@ -51,7 +51,9 @@
                 </a>
             {% endif %}
         </h1>
+
         <hr>
+
         <div class="mt-2 mb-3">
             <h4 class="display-6"><text style="font-weight: bolder;">Content:</text></h4>
             <div class="card p-3">
@@ -62,11 +64,21 @@
                 <p class="text-muted"><text style="font-weight: bolder;">Posted On: </text>{{ post.created_at }}</p>
             </div>
         </div>
+
         <hr>
+
         <div class="mt-2 mb-4">
             <h4 class="display-6">Likes (<span id="likes-count">{{ post.likes.count }}</span>)</h4>
-            <button class="btn btn-primary" id="like-btn" data-post-id="{{ post.id }}">
-                {% if user in post.likes.all %} Unlike {% else %} Like {% endif %}
+            <button class="{% if user in post.likes.all %} btn btn-danger{% else %}btn btn-primary{% endif %}" id="like-btn" data-post-id="{{ post.id }}">
+                {% if user in post.likes.all %} 
+                    <i class="fa-solid fa-thumbs-down">
+                        <span style="font-size: 11.5px; margin-left: 4px; font-family: monospace;">Unlike</span>
+                    </i>
+                {% else %} 
+                    <i class="fa-solid fa-thumbs-up">
+                        <span style="font-size: 11.5px; margin-left: 4px; font-family: monospace;">Like</span> 
+                    </i>
+                {% endif %}
             </button>
             <button class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#likesModal">View Likes</button>
         </div>
@@ -79,7 +91,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
-                        <ul id="likes-list" class="list-group">
+                        <ul class="list-group">
                             {% for like in likes %}
                                 <li class="list-group-item">{{ like.user.username }}</li>
                             {% empty %}
@@ -92,36 +104,50 @@
         </div>
 
         <hr>
+
         <h4 class="display-6">Comments</h4>
         <a href="{% url 'comment-list' post.id %}" class="btn btn-primary mt-1 mb-1">
             <i class="fa-solid fa-comments">
                 <span style="font-size: 12px; margin-left: 5px; font-family: monospace;">View comment section</span>
             </i>
         </a>
+    </div> 
 
-    </div>
-
-    <script>
-        $(document).ready(function() {
-            $("#like-btn").click(function() {
-                let postId = $(this).data("post-id");
-                let isLiked = $(this).text().trim() === "Unlike";
-                let url = isLiked ? "{% url 'like-delete' post.id %}" : "{% url 'like-create' post.id %}";
-                
-                $.ajax({
-                    url: url,
-                    type: "POST",
-                    data: { csrfmiddlewaretoken: "{{ csrf_token }}" },
-                    success: function(response) {
-                        $("#likes-count").text(response.likes_count);
-                        $("#like-btn").text(isLiked ? "Like" : "Unlike");
-                    },
-                    error: function(xhr) {
-                        console.log(xhr.responseText);
+<script>
+    $(document).ready(function () {
+        $("#like-btn").click(function () {
+            var button = $(this);
+            var postId = button.data("post-id");
+    
+            console.log("Like button clicked! Post ID:", postId);
+    
+            $.ajax({
+                url: "{% url 'like-toggle' %}",
+                type: "POST",
+                data: {
+                    post_id: postId, 
+                    csrfmiddlewaretoken: "{{ csrf_token }}"
+                },
+                success: function (response) {
+                    if (response.liked) {
+                        button.html('<i class="fa-solid fa-thumbs-down"><span style="font-size: 11.5px; margin-left: 4px; font-family: monospace;">Unlike</span></i>')
+                            .removeClass()
+                            .addClass("btn btn-danger");
+                            location.reload()
+                    } else {
+                        button.html('<i class="fa-solid fa-thumbs-up"><span style="font-size: 11.5px; margin-left: 4px; font-family: monospace;">Like</span></i>')
+                            .removeClass("btn-danger")
+                            .addClass("btn btn-primary");
+                            location.reload()
                     }
-                });
+                },
+                error: function () {
+                    console.error("AJAX Error:", error);
+                    alert("Error, try liking again");
+                }
             });
         });
-    </script>
+    });
+</script>
 </body>
 </html>

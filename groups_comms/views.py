@@ -4,6 +4,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic.edit import FormMixin # Позволяет отпровлять сообщения в группах
 from django.contrib.auth.mixins import LoginRequiredMixin
 from profiles.mixins import UserIsOwnerMixin
+from django.db.models import Avg
 from .models import Group, GroupMessage, Rating
 from .forms import GroupForm, GroupMessageForm, RatingForm
 from django.http import JsonResponse, HttpResponseRedirect
@@ -117,10 +118,12 @@ class RatingListView(ListView):
     def get_queryset(self):
         self.group = get_object_or_404(Group, pk=self.kwargs['group_id'])
         return Rating.objects.filter(group=self.group).order_by('created_at')
-    
+
     def get_context_data(self, **kwargs):
+        average_rating = Rating.objects.filter(group=self.group).aggregate(avg_rating = Avg('rating'))['avg_rating']
         context = super().get_context_data(**kwargs)
-        context['group'] = self.group 
+        context['group'] = self.group  
+        context['average_rating'] = round(average_rating, 2) if average_rating else None
         return context
     
 class RatingDetailView(DetailView):

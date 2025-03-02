@@ -10,7 +10,8 @@ urlpatterns = [
     path("chats/", ChatListView.as_view(), name="chats"),
     path("chat/<int:receiver_id>/", MessageListView.as_view(), name="chat"),
     path("chat/<int:receiver_id>/send/", MessageCreateView.as_view(), name="message-send"),
-    path("chat/<int:receiver_id>/<int:message_id>/delete", delete_message, name="delete-message"),
+    path("chat/<int:message_id>/delete/", MessageDeleteView.as_view(), name="message-delete"),
+    path("chat/<int:message_id>/edit/", MessageEditView.as_view(), name="message-edit"),
 
     path('user/<int:pk>/followers/', FollowListView.as_view(), name='follow-list'),
     path('follow/<int:pk>/', FollowDetailView.as_view(), name='follow-detail'),

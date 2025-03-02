@@ -103,7 +103,9 @@
                             <div class="card shadow">
                                 <div class="card-body p-3" style="overflow: hidden;">
                                     <div class="row row-cols-md-2 mb-2" style="margin-left: 3px">
-                                        <img src="{{ user.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' note.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                                        {% if note.author.profile_picture %}
+                                            <img src="{{ note.author.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' note.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                                        {% endif %} 
                                         <h5 style="margin-top: 7.5px;">{{ note.author }}</h5>
                                     </div>
                                     <hr>
@@ -186,7 +188,7 @@
                             <div class="card shadow">
                                 <div class="card-body p-3">
                                     <div class="row d-flex justify-content-center mb-3" style="margin-left: 3px">
-                                        <img src="{{ user.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' post.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                                        <img src="{{ post.author.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' post.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
                                         <p></p>
                                         <h5 class="text-center">Post from: <text style="color: darkgoldenrod;">{{ post.author }}</text></h5>
                                     </div>

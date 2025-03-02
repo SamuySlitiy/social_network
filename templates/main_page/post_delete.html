@@ -35,7 +35,13 @@
         <h1 class="text-center display-1">Delete this Post?</h1>
         <hr>
         <div class="card shadow p-2 mt-3 mb-4">
-            <strong>{{ post.author }}</strong>:
+            <strong>{{ post.author }}</strong>
+            <p class="mt-2 mb-2">{{ post.content }}</p>
+            <hr>
+            {% if post.image %}
+                <img src="{{ post.image.url }}" class="img-fluid" alt="Post image">
+            {% endif %}
+            <hr>
             <small class="text-muted">{{ post.created_at }}</small>
         </div>
         <hr>

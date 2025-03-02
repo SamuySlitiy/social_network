@@ -12,3 +12,9 @@
     padding: 10px;
     border-top: 1px solid #ccc;
 }
+
+.custom-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
