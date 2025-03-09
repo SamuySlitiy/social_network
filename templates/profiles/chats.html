@@ -23,6 +23,14 @@
                 </i>
             </a>
         </div>
+        <hr>
+        <div class="d-flex flex-column justify-content-center align-items-center">
+            <a href="{% url 'users' %}" class="btn btn-primary d-flex justify-content-center align-items-center">
+                <i class="fa-solid fa-user-group">
+                    <span style="font-size: 11px; font-family: monospace;">Users</span>
+                </i>
+            </a>
+        </div>
     </nav>
 
     <div class="container">
@@ -35,7 +43,7 @@
                             <a href="{% url 'chat' user.id %}">{{ user.username }}</a>
                         </li>
                 {% empty %}
-                    <li>You have no active chats.</li>
+                    <p class="text-center">You have people to chat with.</p>
                 {% endfor %}
             </div>
         </ul>

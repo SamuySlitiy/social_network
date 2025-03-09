@@ -46,6 +46,9 @@
         </h1>
         <ul>
             {% if ratings %}
+            <div class="card">
+                <p class="text-center display-6 mt-2">Average Rating: <strong>{{ average_rating }}</strong> / 5</p>
+            </div>
                 {% for rating in ratings %}
                     <hr>
                     <div class="card shadow p-2">
@@ -74,7 +77,8 @@
                     </div>
                 {% endfor %}
             {% else %}
-                <p>No Ratings for this group.</p>
+                <hr>
+                <p class="mt-2 text-center">No Ratings for this group.</p>
             {% endif %}
         </ul>
     </div>

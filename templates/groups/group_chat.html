@@ -48,7 +48,7 @@
                         <a href="{{ message.file.url }}" target="_blank">View File</a>
                     {% endif %}
                     {% if message.sender == request.user %}
-                        <button class="btn btn-sm btn-warning edit-message" data-id="{{ message.id }}">Edit</button>
+                        <button class="btn btn-sm btn-success edit-message" data-id="{{ message.id }}">Edit</button>
                         <button class="btn btn-sm btn-danger delete-message" data-id="{{ message.id }}">Delete</button>
                     {% endif %}
                 </div>
@@ -87,7 +87,7 @@
                             <div class="message" id="message-${data.id}">
                                 <strong>${data.sender}</strong>: <span class="message-content">${data.content}</span>
                                 ${data.file_url ? `<a href="${data.file_url}" target="_blank">View File</a>` : ''}
-                                <button class="btn btn-sm btn-warning edit-message" data-id="${data.id}">Edit</button>
+                                <button class="btn btn-sm btn-success edit-message" data-id="${data.id}">Edit</button>
                                 <button class="btn btn-sm btn-danger delete-message" data-id="${data.id}">Delete</button>
                             </div>
                         `;

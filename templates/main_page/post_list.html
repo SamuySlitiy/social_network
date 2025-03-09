@@ -24,11 +24,11 @@
         </div>
         <hr>
         <div class="d-flex flex-column justify-content-center align-items-center">
-            <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#createPostModal">
+            <a href="{% url 'post-create' %}" class="btn btn-danger">
                 <i class="fa-solid fa-circle-plus">
                     <span style="font-size: 12px; margin-left: 5px; font-family: monospace;">Create a Post</span>
                 </i>
-            </button>
+            </a>
         </div>
     </nav>
 
@@ -48,8 +48,14 @@
                         <img src="{{ post.image.url }}" class="card-img-top" alt="Post Image">
                     {% endif %}
                     <div class="card-body">
-                        <h5 class="card-title">{{ post.title }}</h5>
-                        <p class="card-text">{{ post.content|truncatewords:20 }}</p>
+                        <div class="row row-cols-md-3 mb-4">
+                            <img src="{{ post.author.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' post.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                            <div class="mt-2">
+                                <h5 class="text-center">{{ post.author }}</h5>
+                            </div>
+                        </div>
+                        <hr>
+                        <p class="card-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bolder;">{{ post.content|truncatewords:20 }}</p>
                         <button class="btn btn-primary view-post"
                                 data-author="{{ post.author.username }}"
                                 data-content="{{ post.content }}"
@@ -65,17 +71,21 @@
             </div>
             {% endfor %}
         </div>
-        <nav aria-label="..." class="mt-4">
-            <ul class="pagination justify-content-center">
-                {% for page_num in page_obj.paginator.page_range %}
-                    <li class="page-item active" aria-current="page">
-                        <a href="?page={{ page_num }}" class="display: inline-block">
-                            <span class="page-link">Page #{{ page_num }}</span>
-                        </a>
-                    </li>
-                {% endfor %}
-            </ul>
-        </nav>
+        {% if posts %}
+            <nav aria-label="..." class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% for page_num in page_obj.paginator.page_range %}
+                        <li class="page-item active" aria-current="page">
+                            <a href="?page={{ page_num }}" class="display: inline-block">
+                                <span class="page-link">Page #{{ page_num }}</span>
+                            </a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </nav>
+        {% else %}
+            <p class="text-center mt-4">No posts yet.</p>
+        {% endif %}
     </div>
 
 
@@ -99,34 +109,6 @@
         </div>
     </div>
 
-    <div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="createPostModalLabel">Create a Post</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="postForm" method="post" enctype="multipart/form-data">
-                        {% csrf_token %}
-                    
-                        <div class="mb-3">
-                            <label for="content" class="form-label">Write something about your post</label>
-                            <textarea class="form-control" id="content" name="content" rows="4" maxlength="250"></textarea>
-                        </div>      
-                    
-                        <div class="mb-3">
-                            <label for="image" class="form-label">Insert an Image</label>
-                            <input type="file" class="form-control" id="image" name="image" required>
-                        </div>      
-                    
-                        <button type="submit" class="btn btn-success">Confirm</button>
-                    </form>                                                     
-                </div>
-            </div>
-        </div>
-    </div>
-
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             document.querySelectorAll(".view-post").forEach(button => {
@@ -142,21 +124,6 @@
                     document.getElementById("postImage").src = image;
                     document.getElementById("postDate").innerText = "Posted on: " + created_at;
                     document.getElementById("postDetailLink").href = detailUrl;
-                });
-            });
-        });
-
-        $(document).ready(function() {
-            $("#postForm").submit(function(e) {
-                e.preventDefault();
-                $.ajax({
-                    type: "POST",
-                    url: "{% url 'post-create' %}",
-                    data: $(this).serialize(),
-                    success: function(response) {
-                        $("#createPostModal").modal('hide');
-                        location.reload();  // Refresh to show new post
-                    }
                 });
             });
         });

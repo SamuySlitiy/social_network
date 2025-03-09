@@ -39,15 +39,27 @@
     <div class='chat-box'>
         <ul id="message-list">
             {% for message in messages %}
-                    <li>
-                        {% if message.sender == self.request.user %}
-                            <strong>You:</strong> {{ message.text }}
-                            <br><small>{{ message.sent_at }}</small>
-                        {% else %}
-                            <strong>{{ message.sender.username }}:</strong> {{ message.text }}
-                            <br><small>{{ message.sent_at }}</small>
-                        {% endif %}
-                    </li>
+                <li>
+                    {% if message.sender == self.request.user %}
+                        <img src="{{ user.profile_picture.url }}" style="width: 40px; height: 40px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                        <strong>You:</strong> {{ message.text }}
+                        <br><small style="font-style: italic; font-weight: light;">{{ message.sent_at }}</small>
+                        <a href="{% url 'message-delete' message.pk %}" class="btn btn-danger">
+                            <i>
+                                <span class="fa-solid fa-trash"></span>
+                            </i>
+                        </a>
+                        <a href="{% url 'message-edit' message.pk %}" class="btn btn-success">
+                            <i>
+                                <span class="fa-solid fa-pen"></span>
+                            </i>
+                        </a>
+                    {% else %}
+                        <img src="{{ user.profile_picture.url }}" style="width: 40px; height: 40px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                        <strong>{{ message.sender.username }}:</strong> {{ message.text }}
+                        <br><small>{{ message.sent_at }}</small>
+                    {% endif %}
+                </li>
             {% endfor %}
         </ul>
     </div>
@@ -63,21 +75,23 @@
 </div>
 
 <script>
-        $("#message-form").submit(function (e) {
-            e.preventDefault();
-            $.ajax({
-                type: "POST",
-                url: "{% url 'message-send' receiver.id %}",
-                data: {
-                    text: $("#message-text").val(),
-                    csrfmiddlewaretoken: "{{ csrf_token }}",
-                },
-                success: function (data) {
-                    $("#message-list").append(
-                        `<li><strong>You:</strong> ${data.text} <br><small>${data.sent_at}</small></li>`
-                    );
-                    $("#message-text").val("");
-                },
+        $(document).ready(function () {
+            $("#message-form").submit(function (e) {
+                e.preventDefault();
+                $.ajax({
+                    type: "POST",
+                    url: "{% url 'message-send' receiver.id %}",
+                    data: {
+                        text: $("#message-text").val(),
+                        csrfmiddlewaretoken: "{{ csrf_token }}",
+                    },
+                    success: function (data) {
+                        $("#message-list").append(
+                            `<li><strong>You:</strong> ${data.text} <br><small>${data.sent_at}</small></li>`
+                        );
+                        $("#message-text").val("");
+                    },
+                });
             });
         });
 </script>

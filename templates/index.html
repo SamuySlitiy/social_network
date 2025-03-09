@@ -15,25 +15,29 @@
 </head>
 <body>
     <nav class="d-flex flex-column p-3 bg-light" style="width: 100px; height: 100vh; position: fixed;">
-        <img src="{{ user.profile_picture.url }}"  onclick="window.location.href='{% url 'user-profile' user.id %}'" style="position: absolute; top: 18px; left: 16px; width: 65px; height: 65px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;">
-        <br>
-        <br>
-        <br>
+        {% if user.profile_picture %}
+            <img src="{{ user.profile_picture.url }}"  onclick="window.location.href='{% url 'user-profile' user.id %}'" style="position: absolute; top: 18px; left: 16px; width: 65px; height: 65px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;">
+            <br>
+            <br>
+            <br>
+        {% endif %}
         <hr>
         <div class="d-flex flex-column justify-content-center align-items-center">
-            <a href="{% url 'users' %}" class="btn btn-primary d-flex justify-content-center align-items-center mt-2">
+            <a href="{% url 'users' %}" class="btn btn-primary d-flex justify-content-center align-items-center">
                 <i class="fa-solid fa-user-group">
                     <span style="font-size: 11px; font-family: monospace;">Users</span>
                 </i>
             </a>
         </div>
-        <div class="d-flex flex-column justify-content-center align-items-center">
-            <a href="{% url 'chats' %}" class="btn btn-primary d-flex justify-content-center align-items-center mt-3 mb-1">
-                <i class="fa-solid fa-comments">
-                    <span style="font-size: 10.5px; font-family: monospace;">Your Chats</span>
-                </i>
-            </a>
-        </div>
+        {% if user.is_authenticated %}
+            <div class="d-flex flex-column justify-content-center align-items-center">
+                <a href="{% url 'chats' %}" class="btn btn-primary d-flex justify-content-center align-items-center mt-3 mb-1">
+                    <i class="fa-solid fa-comments">
+                        <span style="font-size: 10.5px; font-family: monospace;">Your Chats</span>
+                    </i>
+                </a>
+            </div>
+        {% endif %}
         <hr>
         <div class="d-flex flex-column justify-content-center align-items-center">
             <a href="{% url 'post-list' %}" class="btn btn-danger d-flex justify-content-center align-items-center mt-2 mb-1">
@@ -59,21 +63,32 @@
         </div>
     </nav>
     <div class="container">
-        <h1 class="text-center display-1">
+        <h1 class="text-center display-2">
             Welcome to the 
             <text style="text-shadow: 5px 5px #000000;">Social Network.</text>
-            <a href="{% url 'logout' %}" class="btn btn-danger">
-                <i class="fa-solid fa-user-slash">
+            {% if user.is_authenticated %}
+                <a href="{% url 'logout' %}" class="btn btn-danger">
+                    <i class="fa-solid fa-user-slash"></i>
                     <span style="font-size: 15px; margin-left: 5px; font-family: monospace;">Logout</span>
-                </i>
-            </a>
+                </a>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn btn-success">
+                    <i class="fa-solid fa-user-check">
+                        <span style="font-size: 15.5px; margin-left: 5px; font-family: monospace;">Login</span>
+                    </i>
+                </a>
+                <a href="{% url 'register' %}" class="btn btn-secondary">
+                    <i class="fa-solid fa-user-slash"></i>
+                    <span style="font-size: 15px; margin-left: 5px; font-family: monospace;">Register</span>
+                </a>
+            {% endif %}
         </h1>
         <hr>
         <div class="row">
             <div class="col-md-12">
                 <div class="d-flex align-items-start">
                     <div class="col">
-                        <h2 class="display-4">Notes</h2>
+                        <h2 class="display-5">Notes</h2>
                         <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createNoteModal">
                             <i class="fa-solid fa-highlighter">
                                 <span style="font-size: 14.5px; margin-left: 5px; font-family: monospace;"> Write a Note</span>
@@ -87,9 +102,17 @@
                         <div class="col mt-2">
                             <div class="card shadow">
                                 <div class="card-body p-3" style="overflow: hidden;">
-                                    <h5 class="card-title">{{ note.author }}</h5>
-                                    <p class="card-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ note.content }}</p>
-                                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#noteModal{{ note.id }}">View</button>
+                                    <div class="row row-cols-md-2 mb-2" style="margin-left: 3px">
+                                        {% if note.author.profile_picture %}
+                                            <img src="{{ note.author.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' note.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                                        {% endif %} 
+                                        <h5 style="margin-top: 7.5px;">{{ note.author }}</h5>
+                                    </div>
+                                    <hr>
+                                    <p class="card-text" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bolder;">{{ note.content }}</p>
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#noteModal{{ note.id }}">View</button>
+                                    </div>
                                 </div>
                             </div>                        
                         </div>
@@ -117,9 +140,7 @@
                                 </div>
                             </div>
                         </div>     
-
                     {% endfor %}  
-
                     <div class="modal fade" id="createNoteModal" tabindex="-1" aria-labelledby="createNoteModalLabel" aria-hidden="true">
                         <div class="modal-dialog">
                             <div class="modal-content">
@@ -142,20 +163,22 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
+                {% if not notes %}
+                    <p class="text-center mt-4 mb-1">No notes yet. Write one!</p>
+                {% endif %}
             </div>
 
             <div class="col-md-12 mt-3">
                 <hr>
                 <div class="align-items-start">
                     <div class="col mt-2">
-                        <h2 class="display-4">Posts</h2>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                        <h2 class="display-5">Posts</h2>
+                        <a href="{% url 'post-create' %}" class="btn btn-success">
                             <i class="fa-solid fa-circle-plus">
-                                <span style="font-size: 14.5px; margin-left: 5px; font-family: monospace;">Create a Post</span>
+                                <span style="font-size: 12px; margin-left: 5px; font-family: monospace;">Create a Post</span>
                             </i>
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -164,19 +187,25 @@
                         <div class="col mt-2">
                             <div class="card shadow">
                                 <div class="card-body p-3">
-                                    <h5 class="text-center">Post from: <text style="color: darkgoldenrod;">{{ post.author }}</text></h5>
-                                    <br>
+                                    <div class="row d-flex justify-content-center mb-3" style="margin-left: 3px">
+                                        <img src="{{ post.author.profile_picture.url }}" onclick="window.location.href='{% url 'user-profile' post.author.id %}'" style="width: 45px; height: 45px; border-radius: 50%; border-style: solid; border-color: darkgoldenrod;"> 
+                                        <p></p>
+                                        <h5 class="text-center">Post from: <text style="color: darkgoldenrod;">{{ post.author }}</text></h5>
+                                    </div>
+                                    <hr>
                                     <p class="card-text"><strong>{{ post.content|truncatewords:20 }}</strong></p>
                                     <div class="d-flex justify-content-center mb-3">
                                     </div>
-                                    <button class="btn btn-secondary view-post" 
-                                            data-author="{{ post.author.username }}"
-                                            data-content="{{ post.content }}" 
-                                            data-image="{% if post.image %}{{ post.image.url }}{% else %}/static/default-image.jpg{% endif %}" 
-                                            data-date="{{ post.created_at }}"
-                                            data-detail-url="{% url 'post-detail' post.id %}"
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#postDetailModal">Read More</button>
+                                    <div class="d-flex justify-content-end">
+                                        <button class="btn btn-secondary view-post" 
+                                        data-author="{{ post.author.username }}"
+                                        data-content="{{ post.content }}" 
+                                        data-image="{% if post.image %}{{ post.image.url }}{% else %}/static/default-image.jpg{% endif %}" 
+                                        data-date="{{ post.created_at }}"
+                                        data-detail-url="{% url 'post-detail' post.id %}"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#postDetailModal">Read More</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -202,35 +231,9 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="createPostModalLabel">Create a Post</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="postForm" method="post" enctype="multipart/form-data">
-                                    {% csrf_token %}
-                                
-                                    <div class="mb-3">
-                                        <label for="content" class="form-label">Write something about your post</label>
-                                        <textarea class="form-control" id="content" name="content" rows="4" maxlength="250"></textarea>
-                                    </div>      
-                                
-                                    <div class="mb-3">
-                                        <label for="image" class="form-label">Insert an Image</label>
-                                        <input type="file" class="form-control" id="image" name="image" required>
-                                    </div>      
-                                
-                                    <button type="submit" class="btn btn-success">Save Post</button>
-                                </form>                                                     
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
+                {% if not posts %}
+                    <p class="text-center mt-4">No posts yet. Create one!</p>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -295,19 +298,6 @@
                 }
             });
         });
-    
-        $("#postForm").submit(function(e) {
-            e.preventDefault();
-            $.ajax({
-                type: "POST",
-                url: "{% url 'post-create' %}",
-                data: $(this).serialize(),
-                success: function(response) {
-                    $("#createPostModal").modal('hide');
-                    location.reload();  // Refresh to show new post
-                }
-            });
-        });
     });
 </script>
 <script>
@@ -329,6 +319,5 @@
         });
     });
 </script>
-
 </body>
 </html>

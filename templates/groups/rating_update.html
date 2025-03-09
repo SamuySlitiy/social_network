@@ -39,7 +39,11 @@
                     <form method="post">
                         {% csrf_token %}
                         {{ form.as_p }}
-                        <button type="submit">Submit</button>
+                        <button type="submit" class="btn btn-success">
+                            <i class="fa-solid fa-check">
+                                <span style="font-size: 12.5px; margin-left: 5px; font-family: monospace;">Confirm Changes</span>
+                            </i>
+                        </button>
                     </form>   
             </div>
         </div>

@@ -1,5 +1,6 @@
 from django.db import models
 from profiles.models import User
+from django.db.models import Avg
 
 class Group(models.Model):
     owner = models.ForeignKey(User, on_delete=models.CASCADE, related_name='group_owner')
@@ -17,6 +18,10 @@ class Group(models.Model):
 
     def member_names(self):
         return [member.username for member in self.members.all()]
+    
+    def average_rating(self):
+        avg = self.ratings.aggregate(Avg('rating'))['rating__avg']
+        return round(avg, 2) if avg else 0
 
 class GroupMessage(models.Model):
     group = models.ForeignKey(Group, related_name='group_messages', on_delete=models.CASCADE)
