@@ -69,8 +69,8 @@
 
         <div class="mt-2 mb-4">
             <h4 class="display-6">Likes (<span id="likes-count">{{ post.likes.count }}</span>)</h4>
-            <button class="{% if user in post.likes.all %} btn btn-danger{% else %}btn btn-primary{% endif %}" id="like-btn" data-post-id="{{ post.id }}">
-                {% if user in post.likes.all %} 
+            <button class="{% if liked %}btn btn-danger{% else %}btn btn-primary{% endif %}" id="like-btn" data-post-id="{{ post.id }}">
+                {% if liked %} 
                     <i class="fa-solid fa-thumbs-down">
                         <span style="font-size: 11.5px; margin-left: 4px; font-family: monospace;">Unlike</span>
                     </i>
@@ -92,7 +92,7 @@
                     </div>
                     <div class="modal-body">
                         <ul class="list-group">
-                            {% for like in likes %}
+                            {% for like in post.likes.all %}
                                 <li class="list-group-item">{{ like.user.username }}</li>
                             {% empty %}
                                 <li class="list-group-item">No likes yet.</li>
@@ -133,12 +133,10 @@
                         button.html('<i class="fa-solid fa-thumbs-down"><span style="font-size: 11.5px; margin-left: 4px; font-family: monospace;">Unlike</span></i>')
                             .removeClass()
                             .addClass("btn btn-danger");
-                            location.reload()
                     } else {
                         button.html('<i class="fa-solid fa-thumbs-up"><span style="font-size: 11.5px; margin-left: 4px; font-family: monospace;">Like</span></i>')
                             .removeClass("btn-danger")
                             .addClass("btn btn-primary");
-                            location.reload()
                     }
                 },
                 error: function () {

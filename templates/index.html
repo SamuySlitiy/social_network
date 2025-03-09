@@ -174,11 +174,11 @@
                 <div class="align-items-start">
                     <div class="col mt-2">
                         <h2 class="display-5">Posts</h2>
-                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#createPostModal">
+                        <a href="{% url 'post-create' %}" class="btn btn-success">
                             <i class="fa-solid fa-circle-plus">
-                                <span style="font-size: 14.5px; margin-left: 5px; font-family: monospace;">Create a Post</span>
+                                <span style="font-size: 12px; margin-left: 5px; font-family: monospace;">Create a Post</span>
                             </i>
-                        </button>
+                        </a>
                     </div>
                 </div>
 
@@ -227,34 +227,6 @@
                             </div>
                             <div class="modal-footer">
                                 <a id="postDetailLink" href="#" class="btn btn-primary">View Full Post</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="modal fade" id="createPostModal" tabindex="-1" aria-labelledby="createPostModalLabel" aria-hidden="true">
-                    <div class="modal-dialog">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="createPostModalLabel">Create a Post</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="postForm" method="post" enctype="multipart/form-data">
-                                    {% csrf_token %}
-                                
-                                    <div class="mb-3">
-                                        <label for="content" class="form-label">Write something about your post</label>
-                                        <textarea class="form-control" id="content" name="content" rows="4" maxlength="250"></textarea>
-                                    </div>      
-                                
-                                    <div class="mb-3">
-                                        <label for="image" class="form-label">Insert an Image</label>
-                                        <input type="file" class="form-control" id="image" name="image" required>
-                                    </div>      
-                                
-                                    <button type="submit" class="btn btn-success">Save Post</button>
-                                </form>                                                     
                             </div>
                         </div>
                     </div>
@@ -326,19 +298,6 @@
                 }
             });
         });
-    
-        $("#postForm").submit(function(e) {
-            e.preventDefault();
-            $.ajax({
-                type: "POST",
-                url: "{% url 'post-create' %}",
-                data: $(this).serialize(),
-                success: function(response) {
-                    $("#createPostModal").modal('hide');
-                    location.reload();  // Refresh to show new post
-                }
-            });
-        });
     });
 </script>
 <script>
@@ -360,6 +319,5 @@
         });
     });
 </script>
-
 </body>
 </html>

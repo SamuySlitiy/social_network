@@ -90,6 +90,15 @@ class PostDetailView(DetailView):
     context_object_name = "post"
     success_url = reverse_lazy('post-detail')
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["liked"] = False
+        for like in self.get_object().likes.all():
+            if like.user == self.request.user:
+                context["liked"] = True
+        return context 
+
+
 class PostDeleteView(LoginRequiredMixin, DeleteView):
     model = Post
     template_name = "main_page/post_delete.html"
