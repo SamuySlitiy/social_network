@@ -22,8 +22,8 @@
             <span style="font-size: 14px; margin-left: 5px; font-family: monospace;">Go Back</span>
         </i>
     </button>
-    <h1>{{ user.username }}</h1>
-    <ul>
+    <h1 class="display-1">{{ user.username }}</h1>
+    <ul class="card p-3">
         <br>
         {% if user.profile_picture %}
             <img src="{{ user.profile_picture.url }}" alt="Profile Picture" width="100" height="100" style="border-radius: 45%;">
@@ -34,11 +34,11 @@
         <br>
         <strong>Last Name:</strong> {{ user.last_name }} 
         <br>
-        <small>Email:</small> <strong>{{ user.email }}</strong>
+        <strong>Email:</strong> <small>{{ user.email }}</small>
         <br>
         <strong>Bio:</strong> {{ user.bio }}
         <br>
-
+    </ul>
         <br>
         {% if user == request.user %}
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#updateProfileModal">
@@ -55,7 +55,9 @@
 
         {% if request.user != user %}
             <a class="btn btn-success" href="{% url 'chat' user.id %}" role="button">
-                Send a Message
+                <i class="fa-solid fa-envelope">
+                    <span style="font-size: 13px; margin-left: 5px; font-family: monospace;">Send a Message</span>
+                </i>
             </a>
         {% endif %}
         <br>
@@ -68,7 +70,7 @@
                 </i>
             {% else %}
                 <i class="fa-solid fa-person-circle-plus">
-                    <span style="font-size: 11.5px; margin-left: 5px; font-family: monospace;">Follow</span>
+                    <span style="font-size: 12.5px; margin-left: 5px; font-family: monospace;">Follow</span>
                 </i>
             {% endif %}
         </button>
@@ -77,11 +79,10 @@
 
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#followersModal">
             <i class="fa-solid fa-users-between-lines">
-                <span style="font-size: 15px; margin-left: 5px; font-family: monospace;">View Followers</span>
+                <span style="font-size: 14px; margin-left: 5px; font-family: monospace;">View Followers</span>
             </i>
         </button>
-        
-    </ul>
+
 </div>
         <div class="modal fade" id="updateProfileModal" tabindex="-1">
             <div class="modal-dialog">
